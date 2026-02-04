@@ -1,0 +1,122 @@
+/* button */
+#button_list {
+  margin-top: 24px;
+  text-align: center;
+}
+/* 員工名單 */
+#employee {
+  background-color: rgb(192, 212, 255);
+  padding: 12px;
+  margin-top: 24px;
+  border-radius: 15px;
+  display: flex;
+  justify-content: center;
+}
+/* 員工卡片 */
+.emp-card {
+  background: white;
+  margin: 10px 0;
+  padding: 10px;
+  border-radius: 15px;
+}
+.emp-card .row {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.emp-card .qrcode {
+  margin-top: 8px;
+  display: flex;
+  justify-content: center;
+}
+
+/* 新增員工modal */
+#modal_backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+#modal_backdrop.show {
+  display: flex;
+}
+#add_employee_div {
+  width: min(420px, 92vw);
+  background: pink;
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+}
+#add_employee_div input {
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  outline: none;
+}
+#remove_show {
+  float: right;
+}
+
+/* 員工資料 modal */
+#emp_backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+#emp_backdrop.show {
+  display: flex;
+}
+#emp_modal {
+  width: min(420px, 92vw);
+  background: #fff;
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+}
+#emp_close {
+  float: right;
+}
+#emp_detail {
+  margin-top: 12px;
+  line-height: 1.9;
+}
+
+/* 抽獎結果 modal */
+#draw_backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+#draw_backdrop.show {
+  display: flex;
+}
+#draw_modal {
+  width: min(420px, 92vw);
+  background: #fff;
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+}
+#draw_close {
+  float: right;
+}
+#draw_body {
+  margin-top: 12px;
+  line-height: 1.9;
+  min-height: 60px;
+}
