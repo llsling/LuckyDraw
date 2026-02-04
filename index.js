@@ -125,7 +125,7 @@ async function openEmployeeById(empId) {
     return;
   }
   openEmpModal(`
-    <div>恭喜!<b>序號：</b>${data.id}</div>
+    <div>🎉 恭喜中獎！ <b>序號：</b>${data.id}</div>
     <div><b>姓名：</b>${escapeHtml(data.emp_name ?? "")}</div>
     <div><b>手機：</b>${escapeHtml(data.emp_phone ?? "")}</div>
   `);
