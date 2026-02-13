@@ -4,49 +4,21 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>LuckyDraw</title>
+    <meta property="og:title" content="LuckyDraw 員工抽獎活動" />
+    <meta property="og:description" content="模擬員工抽獎" />
     <link rel="stylesheet" href="./index.css" />
   </head>
   <body>
     <div id="button_list">
-      <button id="add_employee">新增員工</button>
-      <button id="clear_all_employee">清除目前所有資料</button>
-      <button id="insert_employee">塞入預設5筆員工資料</button>
-      <br />
-      <button id="draw_btn" style="margin-top: 12px">抽獎!</button>
+      <button id="btn_admin" style="float: right">管理者頁面</button>
+      <button id="prize" style="display: none">獎項清單</button>
+      <button id="draw_btn" style="margin-top: 12px">抽獎!🎲</button>
     </div>
-    <!-- 員工名單 -->
+    <!-- 預設顯示獎項清單 -->
     <div id="employee">
-      <!-- 範本 -->
       <div id="employee_list"></div>
-      <!-- <div class="row">
-        <span><b>序號:</b> ID</span>
-        <span><b>姓名:</b> Name</span>
-        <span><b>電話:</b> Phone</span>
-      </div>
-      <div class="qrcode" id="${qrId}"></div> -->
     </div>
-    <!-- 新增員工modal -->
-    <div id="modal_backdrop">
-      <div id="add_employee_div">
-        <button id="remove_show">X</button>
-        <br />
-        <span>請輸入抽獎員工資料</span>
-        <button id="reset_add_employee_div">清除</button>
-        <button id="add_employee_ok">確定</button>
-        <input id="emp_name" placeholder="姓名" />
-        <input id="emp_phone" placeholder="手機號碼" />
-      </div>
-    </div>
-    <!-- 員工資料 modal -->
-    <div id="emp_backdrop">
-      <div id="emp_modal">
-        <button id="emp_close">X</button>
-        <h3>員工資料</h3>
-        <div id="emp_detail"></div>
-        <button id="emp_ok">確定</button>
-      </div>
-    </div>
-    <!-- 抽獎結果 modal -->
+    <!-- 抽獎結果modal -->
     <div id="draw_backdrop">
       <div id="draw_modal">
         <button id="draw_close">X</button>
@@ -65,7 +37,15 @@
         </div>
       </div>
     </div>
-
+    <!-- 員工資料modal(掃QRCode後顯示的中獎人員) -->
+    <div id="emp_backdrop">
+      <div id="emp_modal">
+        <button id="emp_close">X</button>
+        <h3>Hi!</h3>
+        <div id="emp_detail"></div>
+        <button id="emp_ok">確定</button>
+      </div>
+    </div>
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="./index.js"></script>

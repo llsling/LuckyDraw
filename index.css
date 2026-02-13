@@ -5,7 +5,7 @@
 }
 /* 員工名單 */
 #employee {
-  background-color: rgb(192, 212, 255);
+  /* background-color: rgb(192, 212, 255); */
   padding: 12px;
   margin-top: 24px;
   border-radius: 15px;
@@ -25,71 +25,168 @@
   align-items: center;
   flex-wrap: wrap;
 }
-.emp-card .qrcode {
+/* .emp-card .qrcode {
   margin-top: 8px;
   display: flex;
   justify-content: center;
+} */
+.emp-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.btn-del {
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  background: #fff;
+  border-radius: 10px;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+.btn-del:hover {
+  opacity: 0.85;
+}
+
+.btn-del:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* 新增員工modal */
 #modal_backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.45);
   display: none;
   align-items: center;
   justify-content: center;
   z-index: 9999;
+  background: rgba(17, 24, 39, 0.55);
+  backdrop-filter: blur(6px);
 }
 #modal_backdrop.show {
   display: flex;
 }
 #add_employee_div {
-  width: min(420px, 92vw);
-  background: pink;
+  width: min(460px, 92vw);
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.12);
   border-radius: 14px;
   padding: 16px;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+  box-shadow: none;
+}
+.modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.modal-title {
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+}
+.btn-icon {
+  appearance: none;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: #ffffff;
+  color: #111827;
+  border-radius: 10px;
+  width: 38px;
+  height: 38px;
+  cursor: pointer;
+  transition: filter 120ms ease;
+}
+.btn-icon:hover {
+  filter: brightness(0.97);
+}
+.modal-body {
+  display: grid;
+  gap: 12px;
+  margin-top: 6px;
+}
+.field label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(17, 24, 39, 0.75);
+  margin-bottom: 6px;
 }
 #add_employee_div input {
   width: 100%;
   box-sizing: border-box;
-  margin-top: 10px;
-  padding: 10px 12px;
-  border-radius: 10px;
-  border: 1px solid rgba(0, 0, 0, 0.2);
+  padding: 11px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  background: #ffffff;
   outline: none;
+  transition:
+    border-color 120ms ease,
+    background 120ms ease;
 }
-#remove_show {
-  float: right;
+#add_employee_div input:focus {
+  border-color: rgba(225, 29, 72, 0.55);
+  background: rgba(225, 29, 72, 0.03);
+}
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 14px;
 }
 
-/* 員工資料 modal */
-#emp_backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.45);
-  display: none;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
+.btn-primary {
+  border: none;
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  transition:
+    filter 120ms ease,
+    transform 120ms ease;
 }
-#emp_backdrop.show {
-  display: flex;
+.btn-primary:hover {
+  filter: brightness(1.06);
 }
-#emp_modal {
-  width: min(420px, 92vw);
-  background: #fff;
-  border-radius: 14px;
-  padding: 16px;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+.btn-primary:active {
+  transform: scale(0.98);
 }
-#emp_close {
-  float: right;
+.btn-ghost {
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  background: #ffffff;
+  color: #111827;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  transition:
+    filter 120ms ease,
+    transform 120ms ease;
 }
-#emp_detail {
-  margin-top: 12px;
-  line-height: 1.9;
+.btn-ghost:hover {
+  filter: brightness(0.97);
+}
+.btn-ghost:active {
+  transform: scale(0.98);
+}
+
+#modal_backdrop.show #add_employee_div {
+  animation: modalPop 140ms ease-out;
+}
+
+@keyframes modalPop {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 /* 抽獎結果 modal */
@@ -119,4 +216,191 @@
   margin-top: 12px;
   line-height: 1.9;
   min-height: 60px;
+}
+
+/* 員工資料 modal(掃QRCode後顯示的中獎人員) */
+#emp_backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+#emp_backdrop.show {
+  display: flex;
+}
+#emp_modal {
+  width: min(420px, 92vw);
+  background: #fff;
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+}
+#emp_close {
+  float: right;
+}
+#emp_detail {
+  margin-top: 12px;
+  line-height: 1.9;
+}
+
+.btn-active {
+  outline: 2px solid rgba(0, 0, 0, 0.4);
+  border-radius: 10px;
+}
+
+/*按鈕樣式*/
+#button_list button {
+  border: none;
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+  border-radius: 12px;
+  padding: 10px 16px;
+  margin: 6px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    filter 120ms ease,
+    background 120ms ease;
+  position: relative;
+}
+/* 微微上浮 */
+#button_list button:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.05);
+}
+#button_list button:active {
+  transform: scale(0.97);
+}
+/* 鍵盤focus */
+#button_list button:focus-visible {
+  outline: 3px solid rgba(225, 29, 72, 0.35);
+  outline-offset: 2px;
+}
+#button_list button.btn-active {
+  background: linear-gradient(135deg, #b91c1c, #7f1d1d);
+}
+#button_list button.btn-active::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  opacity: 0;
+  animation: activePulse 1.4s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes activePulse {
+  0% {
+    opacity: 0.1;
+    transform: scale(0.98);
+  }
+  55% {
+    opacity: 0.35;
+    transform: scale(1.03);
+  }
+  100% {
+    opacity: 0.1;
+    transform: scale(0.98);
+  }
+}
+
+body {
+  background: #f5f7fa;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #1f2937;
+}
+
+/* ===== container ===== */
+#employee {
+  background: transparent;
+  display: flex;
+  justify-content: center;
+  margin-top: 24px;
+}
+.list-wrap {
+  width: min(1000px, 98vw);
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 20px;
+  border: 1px solid #e5e7eb;
+}
+.list-title {
+  font-size: 16px;
+  font-weight: 800;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.list-title::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #14b8a6; /* teal accent */
+}
+
+/* ===== header ===== */
+.list-head {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  background: #ecfeff;
+  border-radius: 12px;
+  font-weight: 700;
+  color: #0f766e;
+}
+/* ===== rows ===== */
+.list-row {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  margin-top: 8px;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  transition:
+    transform 120ms ease,
+    background 120ms ease;
+}
+.list-row:nth-child(even) {
+  background: #f0fdfa;
+}
+.list-row:hover {
+  background: #ccfbf1;
+  transform: translateY(-1px);
+}
+.cell {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cell-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+/* ===== delete button ===== */
+.btn-del {
+  appearance: none;
+  border: none;
+  background: #f97316;
+  color: white;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    transform 120ms ease,
+    filter 120ms ease;
+}
+.btn-del:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+.btn-del:active {
+  transform: scale(0.95);
 }

@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LuckyDraw管理者頁面</title>
+    <link rel="stylesheet" href="./index.css" />
+  </head>
+  <body>
+    <div id="button_list">
+      <button id="add_employee">新增員工</button>
+      <button id="show_employee">顯示員工</button>
+      <button id="prize">獎項清單</button>
+      <button id="prize_get_employee">恭喜中獎者</button>
+      <button id="excel">Excel</button>
+      <br />
+      <!-- <button id="clear_all_employee">清除目前所有資料(要拿掉)</button>
+      <button id="insert_employee">塞入預設5筆員工資料(要拿掉)</button> -->
+    </div>
+    <!-- 員工名單 -->
+    <div id="employee">
+      <div id="employee_list"></div>
+    </div>
+    <!-- 新增員工modal -->
+    <div id="modal_backdrop">
+      <div id="add_employee_div">
+        <div class="modal-head">
+          <div class="modal-title">新增員工</div>
+          <button
+            id="remove_show"
+            class="btn-icon"
+            type="button"
+            aria-label="關閉"
+          >
+            ✕
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="field">
+            <label for="emp_name">姓名</label>
+            <input
+              id="emp_name"
+              placeholder="例如：王小明"
+              autocomplete="off"
+            />
+          </div>
+          <div class="field">
+            <label for="emp_phone">手機號碼</label>
+            <input
+              id="emp_phone"
+              placeholder="例如：0912345678"
+              inputmode="numeric"
+              autocomplete="off"
+            />
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button id="reset_add_employee_div" class="btn-ghost" type="button">
+            清除
+          </button>
+          <button id="add_employee_ok" class="btn-primary" type="button">
+            確定新增
+          </button>
+        </div>
+      </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="./admin.js"></script>
+  </body>
+</html>
