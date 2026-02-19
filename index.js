@@ -207,23 +207,42 @@ function renderWinners(data = []) {
   title.textContent = `中獎清單`;
   wrap.appendChild(title);
 
-  if (data.length === 0) {
+  if (!data || data.length === 0) {
     const empty = document.createElement("div");
     empty.textContent = "目前尚未有中獎紀錄";
     wrap.appendChild(empty);
     return;
   }
 
-  //統計每個獎項已抽額
-  const getPrizeKey = (w) => String(w.prize_no ?? w.prize?.no ?? "");
-
-  const drawnMap = new Map();
+  //依獎項分組：key = prize_no
+  const groupMap = new Map();
   for (const w of data) {
-    const key = getPrizeKey(w);
+    const key = String(w.prize_no ?? w.prize?.no ?? "");
     if (!key) continue;
-    drawnMap.set(key, (drawnMap.get(key) ?? 0) + 1);
+
+    if (!groupMap.has(key)) {
+      groupMap.set(key, {
+        prize_no: w.prize_no ?? w.prize?.no,
+        prize: w.prize ?? null,
+        winners: [],
+      });
+    }
+
+    const winnerName = [
+      w.employee?.dep_name ?? "",
+      w.employee?.emp_id ?? "",
+      w.employee?.emp_name ?? "",
+    ]
+      .filter(Boolean)
+      .join("-");
+
+    if (winnerName) groupMap.get(key).winners.push(winnerName);
   }
 
+  //轉陣列（維持 Map 插入順序＝依 DB 回傳順序）
+  const grouped = Array.from(groupMap.values());
+
+  //表頭
   const head = document.createElement("div");
   head.className = "list-head";
   head.style.gridTemplateColumns = "80px 2fr 100px 70px 70px 70px 6fr";
@@ -238,36 +257,37 @@ function renderWinners(data = []) {
   `;
   wrap.appendChild(head);
 
-  for (const w of data) {
-    const qty = Number(w.prize?.qty ?? 0) || 0;
+  //每個獎只畫一列，得獎人姓名用逗號累加
+  for (const g of grouped) {
+    const qty = Number(g.prize?.qty ?? 0) || 0;
 
-    const key = getPrizeKey(w);
-    const drawn = drawnMap.get(key) ?? 0;
+    // 已抽額 = 該獎 winners 數
+    const drawn = g.winners.length;
+
+    // 餘額
     const remain = Math.max(0, qty - drawn);
 
-    const winnerName = [
-      w.employee?.dep_name ?? "",
-      w.employee?.emp_id ?? "",
-      w.employee?.emp_name ?? "",
-    ]
-      .filter(Boolean)
-      .join("-");
-
-    const imgHtml = w.prize?.image_url
-      ? `<img class="thumb" src="${escapeHtml(w.prize.image_url)}" alt="${escapeHtml(w.prize?.item_name ?? "prize")}" loading="lazy">`
+    // 圖片
+    const imgHtml = g.prize?.image_url
+      ? `<img class="thumb" src="${escapeHtml(g.prize.image_url)}" alt="${escapeHtml(g.prize?.item_name ?? "prize")}" loading="lazy">`
       : "";
+
+    // 得獎人姓名：用 ", " 串起來（並 escape）
+    const winnerNamesText = g.winners
+      .map((name) => escapeHtml(name))
+      .join(", ");
 
     const row = document.createElement("div");
     row.className = "list-row";
     row.style.gridTemplateColumns = "80px 2fr 100px 70px 70px 70px 6fr";
     row.innerHTML = `
-      <div class="cell">${w.prize?.no ?? ""}獎</div>
-      <div class="cell">${escapeHtml(w.prize?.item_name ?? "")}</div>
+      <div class="cell">${g.prize?.no ?? g.prize_no ?? ""}獎</div>
+      <div class="cell">${escapeHtml(g.prize?.item_name ?? "")}</div>
       <div class="cell">${imgHtml}</div>
       <div class="cell">${qty}</div>
       <div class="cell">${drawn}</div>
       <div class="cell">${remain}</div>
-      <div class="cell">${escapeHtml(winnerName)}</div>
+      <div class="cell">${winnerNamesText}</div>
     `;
     wrap.appendChild(row);
   }
