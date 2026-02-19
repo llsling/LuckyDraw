@@ -8,21 +8,19 @@
   </head>
   <body>
     <div id="button_list">
-      <button id="add_employee">新增員工</button>
-      <button id="show_employee">顯示員工</button>
+      <!-- <button id="add_employee">新增員工</button> -->
+      <button id="show_employee">員工清單</button>
       <button id="prize">獎項清單</button>
-      <button id="prize_get_employee">恭喜中獎者</button>
+      <button id="prize_get_employee">中獎清單</button>
       <button id="excel">Excel</button>
       <br />
-      <!-- <button id="clear_all_employee">清除目前所有資料(要拿掉)</button>
-      <button id="insert_employee">塞入預設5筆員工資料(要拿掉)</button> -->
     </div>
     <!-- 員工名單 -->
     <div id="employee">
       <div id="employee_list"></div>
     </div>
     <!-- 新增員工modal -->
-    <div id="modal_backdrop">
+    <!-- <div id="modal_backdrop">
       <div id="add_employee_div">
         <div class="modal-head">
           <div class="modal-title">新增員工</div>
@@ -37,6 +35,19 @@
         </div>
         <div class="modal-body">
           <div class="field">
+            <label for="no">獎卷序號</label>
+            <input
+              id="no"
+              placeholder="例如：99"
+              inputmode="numeric"
+              autocomplete="off"
+            />
+          </div>
+          <div class="field">
+            <label for="emp_id">員編</label>
+            <input id="emp_id" placeholder="例如：ID99" autocomplete="off" />
+          </div>
+          <div class="field">
             <label for="emp_name">姓名</label>
             <input
               id="emp_name"
@@ -45,11 +56,10 @@
             />
           </div>
           <div class="field">
-            <label for="emp_phone">手機號碼</label>
+            <label for="dep_name">部門名稱</label>
             <input
-              id="emp_phone"
-              placeholder="例如：0912345678"
-              inputmode="numeric"
+              id="dep_name"
+              placeholder="例如：採購組"
               autocomplete="off"
             />
           </div>
@@ -63,7 +73,7 @@
           </button>
         </div>
       </div>
-    </div>
+    </div> -->
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="./admin.js"></script>

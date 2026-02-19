@@ -404,3 +404,13 @@ body {
 .btn-del:active {
   transform: scale(0.95);
 }
+
+/*獎項圖片*/
+.thumb {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  display: block;
+}

@@ -91,198 +91,178 @@ function renderEmployees(data) {
 
   const head = document.createElement("div");
   head.className = "list-head";
-  head.style.gridTemplateColumns = "90px 1.2fr 1.2fr 110px";
+  head.style.gridTemplateColumns = "80px 1fr 1fr 1.4fr";
   head.innerHTML = `
     <div class="cell">序號</div>
     <div class="cell">姓名</div>
-    <div class="cell">電話</div>
+    <div class="cell">部門名稱</div>
+    <div class="cell">QRCode</div>
   `;
   wrap.appendChild(head);
+  el.appendChild(wrap);
 
   data.forEach((emp) => {
+    const qrId = `qr_${emp.no}`; //QRcode id
     const row = document.createElement("div");
     row.className = "list-row";
-    row.style.gridTemplateColumns = "90px 1.2fr 1.2fr 110px";
+    row.style.gridTemplateColumns = "80px 1fr 1fr 1.4fr";
     row.innerHTML = `
-      <div class="cell">${emp.id ?? ""}</div>
+      <div class="cell">${emp.no ?? ""}</div>
       <div class="cell">${escapeHtml(emp.emp_name ?? "")}</div>
-      <div class="cell">${escapeHtml(emp.emp_phone ?? "")}</div>
-      <div class="cell-actions">
-        <button class="btn-del" data-action="delete" data-id="${emp.id}">刪除</button>
-      </div>
+      <div class="cell">${escapeHtml(emp.dep_name ?? "")}</div>
+    <div class="qrcode" id="${qrId}"></div>
     `;
+    // <div class="cell-actions">
+    //   <button class="btn-del" data-action="delete" data-id="${emp.id}">刪除</button>
+    // </div>
     wrap.appendChild(row);
-  });
 
-  el.appendChild(wrap);
-}
-document
-  .getElementById("employee_list")
-  .addEventListener("click", async (e) => {
-    if (_currentView !== "employee") return; // 只在員工頁啟用
-    const btn = e.target.closest('button[data-action="delete"]');
-    if (!btn) return;
+    try {
+      const base = new URL(location.href);
+      base.search = "";
+      base.hash = "";
+      if (base.pathname.endsWith("/")) base.pathname += "index.html";
+      base.searchParams.set("emp", emp.id);
 
-    const id = Number(btn.dataset.id);
-    if (!Number.isInteger(id)) return;
+      const qrEl = document.getElementById(qrId);
+      if (!qrEl) throw new Error("qrEl not found: " + qrId);
 
-    // 避免連點
-    btn.disabled = true;
-
-    const emp = (_employeesCache || []).find((x) => x.id === id);
-    const name = emp?.emp_name ? `「${emp.emp_name}」` : `ID=${id}`;
-
-    const ok = confirm(`確定要刪除員工 ${name} 嗎？`);
-    if (!ok) {
-      btn.disabled = false;
-      return;
+      new QRCode(qrEl, { text: base.toString(), width: 96, height: 96 });
+    } catch (e) {
+      console.error("QRCode error for emp:", emp, e);
     }
-
-    const success = await deleteEmployeeById(id);
-    if (!success) {
-      btn.disabled = false;
-      return;
-    }
-
-    //更新 cache
-    _employeesCache = (_employeesCache || []).filter((x) => x.id !== id);
-    //只移除那張卡片
-    const card = btn.closest(".emp-card");
-    if (card) card.remove();
-    //更新上方計數
-    updateEmployeeCountText();
   });
-function updateEmployeeCountText() {
-  const employee_list = document.getElementById("employee_list");
-  const count = (_employeesCache || []).length;
+}
+// document
+//   .getElementById("employee_list")
+//   .addEventListener("click", async (e) => {
+//     if (_currentView !== "employee") return; // 只在員工頁啟用
+//     const btn = e.target.closest('button[data-action="delete"]');
+//     if (!btn) return;
 
-  renderEmployees(_employeesCache);
-}
-async function deleteEmployeeById(id) {
-  const { error } = await supabaseClient.from("employee").delete().eq("id", id);
-  if (error) {
-    console.error("DB delete error:", error);
-    alert("刪除失敗：" + error.message);
-    return false;
-  }
-  return true;
-}
+//     const id = Number(btn.dataset.id);
+//     if (!Number.isInteger(id)) return;
+
+//     // 避免連點
+//     btn.disabled = true;
+
+//     const emp = (_employeesCache || []).find((x) => x.id === id);
+//     const name = emp?.emp_name ? `「${emp.emp_name}」` : `ID=${id}`;
+
+//     const ok = confirm(`確定要刪除員工 ${name} 嗎？`);
+//     if (!ok) {
+//       btn.disabled = false;
+//       return;
+//     }
+
+//     const success = await deleteEmployeeById(id);
+//     if (!success) {
+//       btn.disabled = false;
+//       return;
+//     }
+
+//     //更新 cache
+//     _employeesCache = (_employeesCache || []).filter((x) => x.id !== id);
+//     //只移除那張卡片
+//     const card = btn.closest(".emp-card");
+//     if (card) card.remove();
+//     //更新上方計數
+//     updateEmployeeCountText();
+//   });
+// function updateEmployeeCountText() {
+//   const employee_list = document.getElementById("employee_list");
+//   const count = (_employeesCache || []).length;
+
+//   renderEmployees(_employeesCache);
+// }
+// async function deleteEmployeeById(id) {
+//   const { error } = await supabaseClient.from("employee").delete().eq("id", id);
+//   if (error) {
+//     console.error("DB delete error:", error);
+//     alert("刪除失敗：" + error.message);
+//     return false;
+//   }
+//   return true;
+// }
 
 ////新增員工按鈕
 //開啟
-document
-  .getElementById("add_employee")
-  .addEventListener("click", openAddEmployeeModal);
-//1.右上角 X 關閉
-document
-  .getElementById("remove_show")
-  .addEventListener("click", closeAddEmployeeModal);
-//2.點遮罩關閉
-document.getElementById("modal_backdrop").addEventListener("click", (e) => {
-  if (e.target.id === "modal_backdrop") closeAddEmployeeModal();
-});
-//3.Esc關閉
-document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape") closeAddEmployeeModal();
-});
-//新增員工modal打開
-function openAddEmployeeModal() {
-  document.getElementById("modal_backdrop").classList.add("show");
-  document.getElementById("emp_name").focus();
-}
-//新增員工modal關閉
-function closeAddEmployeeModal() {
-  document.getElementById("modal_backdrop").classList.remove("show");
-  document.getElementById("emp_name").value = "";
-  document.getElementById("emp_phone").value = "";
-}
-//確定後塞入資料庫
-document
-  .getElementById("add_employee_ok")
-  .addEventListener("click", async function () {
-    const emp_name = document.getElementById("emp_name").value.trim();
-    const emp_phone = document.getElementById("emp_phone").value.trim();
-    //檢查是否為空
-    if (emp_name == "" || emp_phone == "") {
-      alert("請輸入姓名與手機號碼");
-      return;
-    }
-    //檢查手機格式
-    const phoneRegex = /^09\d{8}$/;
-    if (!phoneRegex.test(emp_phone)) {
-      alert("手機號碼格式錯誤");
-      return;
-    }
-    //輸入資料
-    const { data, error } = await supabaseClient
-      .from("employee")
-      .insert([{ emp_name: emp_name, emp_phone: emp_phone }])
-      .select()
-      .single();
-    //錯誤
-    if (error) {
-      console.error("DB insert error:", error);
-      alert("新增失敗：" + error.message);
-      return;
-    }
-    console.log("新增成功:", data);
-    //清空+關閉
-    document.getElementById("emp_name").value = "";
-    document.getElementById("emp_phone").value = "";
-    alert("新增成功！");
-    loadEmployees();
-  });
-//清除輸入資料
-document
-  .getElementById("reset_add_employee_div")
-  .addEventListener("click", function () {
-    document.getElementById("emp_name").value = "";
-    document.getElementById("emp_phone").value = "";
-  });
-
-////清除目前所有資料
 // document
-//   .getElementById("clear_all_employee")
+//   .getElementById("add_employee")
+//   .addEventListener("click", openAddEmployeeModal);
+// //1.右上角 X 關閉
+// document
+//   .getElementById("remove_show")
+//   .addEventListener("click", closeAddEmployeeModal);
+// //2.點遮罩關閉
+// document.getElementById("modal_backdrop").addEventListener("click", (e) => {
+//   if (e.target.id === "modal_backdrop") closeAddEmployeeModal();
+// });
+// //3.Esc關閉
+// document.addEventListener("keydown", (e) => {
+//   if (e.key === "Escape") closeAddEmployeeModal();
+// });
+// //新增員工modal打開
+// function openAddEmployeeModal() {
+//   document.getElementById("modal_backdrop").classList.add("show");
+//   document.getElementById("emp_name").focus();
+// }
+// //新增員工modal關閉
+// function closeAddEmployeeModal() {
+//   document.getElementById("modal_backdrop").classList.remove("show");
+//   document.getElementById("emp_name").value = "";
+//   document.getElementById("emp_phone").value = "";
+// }
+// //確定後塞入資料庫
+// document
+//   .getElementById("add_employee_ok")
 //   .addEventListener("click", async function () {
-//     const ok = confirm("確定要清除所有員工資料嗎？此操作無法復原。");
-//     if (!ok) return;
-//     const { error } = await supabaseClient
-//       .from("employee")
-//       .delete()
-//       .gt("id", 0);
-//     if (error) {
-//       console.error("DB delete error:", error);
-//       alert("清除失敗：" + error.message);
+//     const no = document.getElementById("no").value.trim();
+//     const emp_id = document.getElementById("emp_id").value.trim();
+//     const emp_name = document.getElementById("emp_name").value.trim();
+//     const dep_name = document.getElementById("dep_name").value.trim();
+//     //檢查是否為空
+//     if (no == "" || emp_id == "" || emp_name == "" || dep_name == "") {
+//       alert("獎卷序號與員編與姓名與部門名稱不得為空");
 //       return;
 //     }
-//     alert("已清除所有員工資料！");
-//     loadEmployees();
-//   });
-
-////塞入預設5筆員工資料
-// document
-//   .getElementById("insert_employee")
-//   .addEventListener("click", async () => {
-//     const ok = confirm("要塞入 5 筆預設員工資料嗎？");
-//     if (!ok) return;
-//     const defaultEmployees = [
-//       { emp_name: "王小明", emp_phone: "0912345678" },
-//       { emp_name: "李小華", emp_phone: "0922333444" },
-//       { emp_name: "陳大同", emp_phone: "0933555666" },
-//       { emp_name: "林美麗", emp_phone: "0944777888" },
-//       { emp_name: "張志強", emp_phone: "0955999000" },
-//     ];
+//     //檢查手機格式
+//     // const phoneRegex = /^09\d{8}$/;
+//     // if (!phoneRegex.test(emp_phone)) {
+//     //   alert("手機號碼格式錯誤");
+//     //   return;
+//     // }
+//     //輸入資料
 //     const { data, error } = await supabaseClient
 //       .from("employee")
-//       .insert(defaultEmployees)
-//       .select();
+//       .insert([
+//         { no: no, emp_id: emp_id, emp_name: emp_name, dep_name: dep_name },
+//       ])
+//       .select()
+//       .single();
+//     //錯誤
 //     if (error) {
 //       console.error("DB insert error:", error);
-//       alert("塞入失敗：" + error.message);
+//       alert("新增失敗：" + error.message);
 //       return;
 //     }
-//     alert("已成功塞入 5 筆員工資料！");
+//     console.log("新增成功:", data);
+//     //清空+關閉
+//     document.getElementById("no").value = "";
+//     document.getElementById("emp_id").value = "";
+//     document.getElementById("emp_name").value = "";
+//     document.getElementById("dep_name").value = "";
+//     alert("新增成功！");
 //     loadEmployees();
+//   });
+// //清除輸入資料
+// document
+//   .getElementById("reset_add_employee_div")
+//   .addEventListener("click", function () {
+//     document.getElementById("no").value = "";
+//     document.getElementById("emp_id").value = "";
+//     document.getElementById("emp_name").value = "";
+//     document.getElementById("dep_name").value = "";
 //   });
 
 // 簡單防 XSS（避免名字含 <script> 之類）
@@ -300,7 +280,7 @@ async function loadPrizes() {
   const { data, error } = await supabaseClient
     .from("prize")
     .select("*")
-    .order("draw_order", { ascending: true });
+    .order("no", { ascending: true });
 
   if (error) {
     alert("讀取獎項失敗：" + error.message);
@@ -333,10 +313,11 @@ function renderPrizes(data) {
 
   const head = document.createElement("div");
   head.className = "list-head";
-  head.style.gridTemplateColumns = "90px 1.6fr 90px 90px";
+  head.style.gridTemplateColumns = "80px 1.1fr 1.6fr 80px";
   head.innerHTML = `
-    <div class="cell">順序</div>
-    <div class="cell">獎項</div>
+    <div class="cell">no</div>
+    <div class="cell">品項</div>
+    <div class="cell"></div>
     <div class="cell">名額</div>
   `;
   wrap.appendChild(head);
@@ -344,11 +325,14 @@ function renderPrizes(data) {
   data.forEach((p) => {
     const row = document.createElement("div");
     row.className = "list-row";
-    row.style.gridTemplateColumns = "90px 1.6fr 90px 90px";
+    row.style.gridTemplateColumns = "80px 1.1fr 1.6fr 80px";
     row.innerHTML = `
-      <div class="cell">${p.draw_order ?? ""}</div>
-      <div class="cell">${escapeHtml(p.prize_name ?? "")}</div>
-      <div class="cell">${p.quantity ?? ""}</div>
+      <div class="cell">${p.no ?? ""}獎</div>
+      <div class="cell">${escapeHtml(p.item_name ?? "")}</div>
+      <div class="cell">
+        ${p.image_url ? `<img class="thumb" src="${escapeHtml(p.image_url)}" alt="${escapeHtml(p.item_name ?? "prize")}" loading="lazy">` : ""}
+      </div>
+      <div class="cell">${p.qty ?? ""}</div>
     `;
     wrap.appendChild(row);
   });
@@ -362,64 +346,99 @@ async function loadWinners() {
     .select(
       `
       id,
-      drawn_at,
-      employee:employee_id ( id, emp_name ),
-      prize:prize_id ( id, prize_name )
+      created_at,
+      prize_no,
+      employee:employee_no ( no, emp_id,emp_name,dep_name,job_position ),
+      prize:prize_no ( no, item_name,qty,image_url )
     `,
     )
-    .order("drawn_at", { ascending: false });
+    .order("created_at", { ascending: false });
 
   if (error) {
     console.error(error);
-    alert("讀取中獎者失敗：" + error.message);
+    alert("讀取中獎清單失敗：" + error.message);
     return;
   }
 
   _winnersCache = data || [];
   renderWinners(_winnersCache);
 }
-////中獎人員
-function renderWinners(data) {
+////中獎清單
+function renderWinners(data = []) {
   const el = document.getElementById("employee_list");
   el.innerHTML = "";
 
   const wrap = document.createElement("div");
   wrap.className = "list-wrap";
+  el.appendChild(wrap);
 
   const title = document.createElement("div");
   title.className = "list-title";
-  title.textContent = `恭喜中獎者（${data?.length ?? 0}）`;
+  title.textContent = `中獎清單`;
   wrap.appendChild(title);
 
-  if (!data || data.length === 0) {
+  if (data.length === 0) {
     const empty = document.createElement("div");
     empty.textContent = "目前尚未有中獎紀錄";
     wrap.appendChild(empty);
-    el.appendChild(wrap);
     return;
+  }
+
+  //統計每個獎項已抽額
+  const getPrizeKey = (w) => String(w.prize_no ?? w.prize?.no ?? "");
+
+  const drawnMap = new Map();
+  for (const w of data) {
+    const key = getPrizeKey(w);
+    if (!key) continue;
+    drawnMap.set(key, (drawnMap.get(key) ?? 0) + 1);
   }
 
   const head = document.createElement("div");
   head.className = "list-head";
-  head.style.gridTemplateColumns = "1.2fr 1.2fr 1.6fr";
+  head.style.gridTemplateColumns = "80px 1.2fr 1.2fr 80px 80px 80px 1.6fr";
   head.innerHTML = `
-    <div class="cell">員工</div>
-    <div class="cell">獎項</div>
-    <div class="cell">時間</div>
+    <div class="cell">no</div>
+    <div class="cell">品項</div>
+    <div class="cell">圖片</div>
+    <div class="cell">名額</div>
+    <div class="cell">已抽額</div>
+    <div class="cell">餘額</div>
+    <div class="cell">得獎人姓名</div>
   `;
   wrap.appendChild(head);
 
-  data.forEach((w) => {
+  for (const w of data) {
+    const qty = Number(w.prize?.qty ?? 0) || 0;
+
+    const key = getPrizeKey(w);
+    const drawn = drawnMap.get(key) ?? 0;
+    const remain = Math.max(0, qty - drawn);
+
+    const winnerName = [
+      w.employee?.dep_name ?? "",
+      w.employee?.emp_id ?? "",
+      w.employee?.emp_name ?? "",
+    ]
+      .filter(Boolean)
+      .join("-");
+
+    const imgHtml = w.prize?.image_url
+      ? `<img class="thumb" src="${escapeHtml(w.prize.image_url)}" alt="${escapeHtml(w.prize?.item_name ?? "prize")}" loading="lazy">`
+      : "";
+
     const row = document.createElement("div");
     row.className = "list-row";
-    row.style.gridTemplateColumns = "1.2fr 1.2fr 1.6fr";
+    row.style.gridTemplateColumns = "80px 1.2fr 1.2fr 80px 80px 80px 1.6fr";
     row.innerHTML = `
-      <div class="cell">${escapeHtml(w.employee?.emp_name ?? "")}</div>
-      <div class="cell">${escapeHtml(w.prize?.prize_name ?? "")}</div>
-      <div class="cell">${new Date(w.drawn_at).toLocaleString()}</div>
+      <div class="cell">${w.prize?.no ?? ""}獎</div>
+      <div class="cell">${escapeHtml(w.prize?.item_name ?? "")}</div>
+      <div class="cell">${imgHtml}</div>
+      <div class="cell">${qty}</div>
+      <div class="cell">${drawn}</div>
+      <div class="cell">${remain}</div>
+      <div class="cell">${escapeHtml(winnerName)}</div>
     `;
     wrap.appendChild(row);
-  });
-
-  el.appendChild(wrap);
+  }
 }

@@ -10,7 +10,7 @@ console.log("Supabase initialized", supabaseClient);
 
 //頁面載入員工名單
 document.addEventListener("DOMContentLoaded", () => {
-  loadPrizes();
+  loadWinners();
   //QR(URL帶 ?emp=28)
   // const empId = new URL(location.href).searchParams.get("emp");
   // if (empId !== null && empId !== "") {
@@ -18,7 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // }
 });
 document.getElementById("prize").addEventListener("click", () => {
-  loadPrizes();
+  loadWinners();
 });
 //讀取
 let _employeesCache = [];
@@ -29,57 +29,11 @@ async function loadEmployees() {
     .order("id", { ascending: true });
   if (dbError) {
     console.error("DB select error:", dbError);
-    alert("讀取員工失敗：" + dbError.message);
+    alert("讀取失敗：" + dbError.message);
     return;
   }
   _employeesCache = employee || [];
-  // renderEmployees(_employeesCache);
 }
-//渲染
-// function renderEmployees(data) {
-//   const employee_list = document.getElementById("employee_list");
-//   employee_list.innerHTML = ""; // 清空舊的
-//   if (!data || data.length === 0) {
-//     employee_list.innerHTML = `<span>目前沒有員工資料</span><br />`;
-//     return;
-//   } else {
-//     employee_list.innerHTML = `<span>已有${data.length}名員工資料</span>`;
-//   }
-//   //每筆員工資料
-//   data.forEach((emp) => {
-//     const card = document.createElement("div");
-//     card.className = "emp-card";
-//     //QRcode id
-//     const qrId = `qr_${emp.id}`;
-//     card.innerHTML = `
-//       <div class="row">
-//         <span><b>序號:</b> ${emp.id ?? ""}</span>
-//         <span><b>姓名:</b> ${escapeHtml(emp.emp_name ?? "")}</span>
-//         <span><b>電話:</b> ${escapeHtml(emp.emp_phone ?? "")}</span>
-//       </div>
-//       <div class="qrcode" id="${qrId}"></div>
-//     `;
-//     employee_list.appendChild(card);
-//     try {
-//       const base = new URL(location.href);
-//       base.search = ""; // 清掉 query
-//       base.hash = ""; // 清掉 hash
-//       if (base.pathname.endsWith("/")) {
-//         base.pathname += "index.html";
-//       }
-//       base.searchParams.set("emp", emp.id);
-//       const qrUrl = base.toString();
-//       new QRCode(document.getElementById(qrId), {
-//         text: qrUrl,
-//         width: 96,
-//         height: 96,
-//         correctLevel: QRCode.CorrectLevel.L,
-//       });
-//     } catch (e) {
-//       console.error("QRCode error for emp:", emp, e);
-//     }
-//   });
-// }
 
 ////抽獎!🎲按鈕
 document.getElementById("draw_btn").addEventListener("click", doLuckyDraw);
@@ -216,68 +170,106 @@ document.getElementById("btn_admin").addEventListener("click", () => {
   location.href = "./admin.html";
 });
 
-////獎項清單
-let _prizesCache = [];
-async function loadPrizes() {
+////中獎清單
+async function loadWinners() {
   const { data, error } = await supabaseClient
-    .from("prize")
-    .select("*")
-    .order("draw_order", { ascending: true });
+    .from("winner")
+    .select(
+      `
+      id,
+      created_at,
+      prize_no,
+      employee:employee_no ( no, emp_id,emp_name,dep_name,job_position ),
+      prize:prize_no ( no, item_name,qty,image_url )
+    `,
+    )
+    .order("created_at", { ascending: false });
 
   if (error) {
     console.error(error);
-    alert("讀取獎項失敗：" + error.message);
+    alert("讀取中獎清單失敗：" + error.message);
     return;
   }
 
-  _prizesCache = data || [];
-  renderPrizes(_prizesCache);
+  _winnersCache = data || [];
+  renderWinners(_winnersCache);
 }
-function renderPrizes(data) {
+////中獎清單
+function renderWinners(data = []) {
   const el = document.getElementById("employee_list");
-  if (!el) return;
-
   el.innerHTML = "";
 
   const wrap = document.createElement("div");
   wrap.className = "list-wrap";
+  el.appendChild(wrap);
 
   const title = document.createElement("div");
   title.className = "list-title";
-  title.textContent = `獎項清單（${data?.length ?? 0}）`;
+  title.textContent = `中獎清單`;
   wrap.appendChild(title);
 
-  if (!data || data.length === 0) {
+  if (data.length === 0) {
     const empty = document.createElement("div");
-    empty.textContent = "目前沒有獎項資料";
+    empty.textContent = "目前尚未有中獎紀錄";
     wrap.appendChild(empty);
-    el.appendChild(wrap);
     return;
+  }
+
+  //統計每個獎項已抽額
+  const getPrizeKey = (w) => String(w.prize_no ?? w.prize?.no ?? "");
+
+  const drawnMap = new Map();
+  for (const w of data) {
+    const key = getPrizeKey(w);
+    if (!key) continue;
+    drawnMap.set(key, (drawnMap.get(key) ?? 0) + 1);
   }
 
   const head = document.createElement("div");
   head.className = "list-head";
-  head.style.gridTemplateColumns = "90px 1.6fr 90px 120px";
+  head.style.gridTemplateColumns = "80px 1.2fr 1.2fr 80px 80px 80px 1.6fr";
   head.innerHTML = `
-    <div class="cell">順序</div>
-    <div class="cell">獎項</div>
+    <div class="cell">no</div>
+    <div class="cell">品項</div>
+    <div class="cell">圖片</div>
     <div class="cell">名額</div>
-    <div class="cell">抽獎!🎲</div>
+    <div class="cell">已抽額</div>
+    <div class="cell">餘額</div>
+    <div class="cell">得獎人姓名</div>
   `;
   wrap.appendChild(head);
 
-  data.forEach((p) => {
+  for (const w of data) {
+    const qty = Number(w.prize?.qty ?? 0) || 0;
+
+    const key = getPrizeKey(w);
+    const drawn = drawnMap.get(key) ?? 0;
+    const remain = Math.max(0, qty - drawn);
+
+    const winnerName = [
+      w.employee?.dep_name ?? "",
+      w.employee?.emp_id ?? "",
+      w.employee?.emp_name ?? "",
+    ]
+      .filter(Boolean)
+      .join("-");
+
+    const imgHtml = w.prize?.image_url
+      ? `<img class="thumb" src="${escapeHtml(w.prize.image_url)}" alt="${escapeHtml(w.prize?.item_name ?? "prize")}" loading="lazy">`
+      : "";
+
     const row = document.createElement("div");
     row.className = "list-row";
-    row.style.gridTemplateColumns = "90px 1.6fr 90px 120px";
+    row.style.gridTemplateColumns = "80px 1.2fr 1.2fr 80px 80px 80px 1.6fr";
     row.innerHTML = `
-      <div class="cell">${p.draw_order ?? ""}</div>
-      <div class="cell">${escapeHtml(p.prize_name ?? "")}</div>
-      <div class="cell">${p.quantity ?? ""}</div>
-      <div class="cell">順序</div>
+      <div class="cell">${w.prize?.no ?? ""}獎</div>
+      <div class="cell">${escapeHtml(w.prize?.item_name ?? "")}</div>
+      <div class="cell">${imgHtml}</div>
+      <div class="cell">${qty}</div>
+      <div class="cell">${drawn}</div>
+      <div class="cell">${remain}</div>
+      <div class="cell">${escapeHtml(winnerName)}</div>
     `;
     wrap.appendChild(row);
-  });
-
-  el.appendChild(wrap);
+  }
 }
