@@ -10,13 +10,22 @@
   </head>
   <body>
     <div id="button_list">
-      <button id="btn_admin">管理者頁面</button>
+      <!-- <button id="btn_admin">管理者頁面</button> -->
       <!--獎項按鈕 -->
-      <span id="prize_buttons"></span>
+      <div id="prize_buttons"></div>
       <button id="prize" style="display: none">獎項清單</button>
       <!-- <button id="draw_btn" style="margin-top: 12px">抽獎!🎲</button> -->
     </div>
-
+    <!-- 獎項資訊 modal -->
+    <div id="prize_backdrop">
+      <div id="prize_modal">
+        <button id="prize_close">X</button>
+        <div id="prize_body"></div>
+        <div style="margin-top: 12px; display: flex; justify-content: flex-end">
+          <button id="prize_ok">確定</button>
+        </div>
+      </div>
+    </div>
     <!-- 預設顯示中獎清單 -->
     <div id="employee">
       <div id="employee_list"></div>

@@ -9,8 +9,9 @@ const supabaseClient = window.supabase.createClient(
 console.log("Supabase initialized", supabaseClient);
 
 //頁面載入中獎清單
-document.addEventListener("DOMContentLoaded", () => {
-  loadWinners();
+document.addEventListener("DOMContentLoaded", async () => {
+  await loadPrizes(); // 產生獎項按鈕
+  await loadWinners(); // 撈中獎清單（並 render）
   //QR(URL帶 ?emp=28)
   // const empId = new URL(location.href).searchParams.get("emp");
   // if (empId !== null && empId !== "") {
@@ -166,8 +167,92 @@ function escapeHtml(str) {
 }
 
 //前往管理者頁面
-document.getElementById("btn_admin").addEventListener("click", () => {
-  location.href = "./admin.html";
+// document.getElementById("btn_admin").addEventListener("click", () => {
+//   location.href = "./admin.html";
+// });
+
+////獎項按鈕
+let _prizesCache = [];
+async function loadPrizes() {
+  const { data, error } = await supabaseClient
+    .from("prize")
+    .select("no, item_name, image_url")
+    .order("no", { ascending: true });
+
+  if (error) {
+    console.error(error);
+    alert("讀取獎項失敗：" + error.message);
+    return;
+  }
+
+  _prizesCache = data || [];
+  renderPrizeButtons(_prizesCache);
+}
+
+function renderPrizeButtons(prizes = []) {
+  const host = document.getElementById("prize_buttons");
+  if (!host) return;
+  host.innerHTML = "";
+
+  // 每個獎項按鈕
+  for (const p of prizes) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.textContent = `${p.no}獎`;
+    btn.title = p.item_name ? String(p.item_name) : "";
+
+    btn.addEventListener("click", () => {
+      // 1) 清掉其他按鈕的 active
+      host
+        .querySelectorAll("button")
+        .forEach((b) => b.classList.remove("btn-active"));
+      // 2) 目前這顆變 active（深紅固定）
+      btn.classList.add("btn-active");
+
+      // 3) 開 modal
+      openPrizeModal(p);
+    });
+
+    host.appendChild(btn);
+  }
+}
+
+//獎項資訊 modal
+function openPrizeModal(prize) {
+  const no = prize?.no ?? "";
+  const name = prize?.item_name ?? "";
+  const img = prize?.image_url
+    ? `<img src="${escapeHtml(prize.image_url)}" alt="${escapeHtml(name || "prize")}" loading="lazy">`
+    : `<div style="opacity:.7;">（無圖片）</div>`;
+
+  document.getElementById("prize_body").innerHTML = `
+      <div class="prize-title">
+        ${escapeHtml(no)}獎 - ${escapeHtml(name)}
+      </div>
+      <div class="prize-image">
+        ${img}
+      </div>
+    `;
+
+  document.getElementById("prize_backdrop").classList.add("show");
+}
+function closePrizeModal() {
+  document.getElementById("prize_backdrop").classList.remove("show");
+  document.getElementById("prize_body").innerHTML = "";
+
+  const host = document.getElementById("prize_buttons");
+  if (host) {
+    host
+      .querySelectorAll("button")
+      .forEach((b) => b.classList.remove("btn-active"));
+  }
+}
+document
+  .getElementById("prize_close")
+  .addEventListener("click", closePrizeModal);
+document.getElementById("prize_ok").addEventListener("click", closePrizeModal);
+document.getElementById("prize_backdrop").addEventListener("click", (e) => {
+  if (e.target.id === "prize_backdrop") closePrizeModal();
 });
 
 ////中獎清單
