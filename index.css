@@ -602,3 +602,12 @@ body {
     transform: translateY(0) scale(1);
   }
 }
+/* 抽完的按鈕 */
+#button_list button.btn-disabled,
+#button_list button:disabled {
+  background: #9ca3af !important;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+  opacity: 0.7;
+}

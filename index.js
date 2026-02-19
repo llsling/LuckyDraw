@@ -174,18 +174,45 @@ function escapeHtml(str) {
 ////獎項按鈕
 let _prizesCache = [];
 async function loadPrizes() {
-  const { data, error } = await supabaseClient
+  // 1️⃣ 讀取所有獎項
+  const { data: prizes, error: prizeError } = await supabaseClient
     .from("prize")
-    .select("no, item_name, image_url")
+    .select("no, item_name, image_url, qty")
     .order("no", { ascending: true });
 
-  if (error) {
-    console.error(error);
-    alert("讀取獎項失敗：" + error.message);
+  if (prizeError) {
+    console.error(prizeError);
+    alert("讀取獎項失敗：" + prizeError.message);
     return;
   }
 
-  _prizesCache = data || [];
+  // 2️⃣ 讀取中獎紀錄（只要 prize_no）
+  const { data: winners, error: winnerError } = await supabaseClient
+    .from("winner")
+    .select("prize_no");
+
+  if (winnerError) {
+    console.error(winnerError);
+    alert("讀取中獎資料失敗：" + winnerError.message);
+    return;
+  }
+
+  // 3️⃣ 統計每個獎項已抽數
+  const drawnMap = new Map();
+  for (const w of winners || []) {
+    drawnMap.set(w.prize_no, (drawnMap.get(w.prize_no) || 0) + 1);
+  }
+
+  // 4️⃣ 合併資料
+  _prizesCache = (prizes || []).map((p) => {
+    const drawn = drawnMap.get(p.no) || 0;
+    return {
+      ...p,
+      drawn,
+      remain: Math.max(0, (p.qty || 0) - drawn),
+    };
+  });
+
   renderPrizeButtons(_prizesCache);
 }
 
@@ -194,24 +221,26 @@ function renderPrizeButtons(prizes = []) {
   if (!host) return;
   host.innerHTML = "";
 
-  // 每個獎項按鈕
   for (const p of prizes) {
     const btn = document.createElement("button");
     btn.type = "button";
     btn.textContent = `${p.no}獎`;
-    btn.title = p.item_name ? String(p.item_name) : "";
+    btn.title = p.item_name || "";
 
-    btn.addEventListener("click", () => {
-      // 1) 清掉其他按鈕的 active
-      host
-        .querySelectorAll("button")
-        .forEach((b) => b.classList.remove("btn-active"));
-      // 2) 目前這顆變 active（深紅固定）
-      btn.classList.add("btn-active");
+    // ⭐ 如果抽完
+    if (p.remain <= 0) {
+      btn.disabled = true;
+      btn.classList.add("btn-disabled");
+    } else {
+      btn.addEventListener("click", () => {
+        host
+          .querySelectorAll("button")
+          .forEach((b) => b.classList.remove("btn-active"));
 
-      // 3) 開 modal
-      openPrizeModal(p);
-    });
+        btn.classList.add("btn-active");
+        openPrizeModal(p);
+      });
+    }
 
     host.appendChild(btn);
   }
