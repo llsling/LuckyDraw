@@ -1,3 +1,167 @@
+/* ===== Top Header ===== */
+/* ===== Top Header: Hot Red + Gold Line + Sparkles ===== */
+#top_header {
+  width: 100%;
+  height: 80px;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #ff1e1e, #ef4444, #dc2626, #991b1b);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 金色細線底邊 + 微光暈 */
+#top_header::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    #fde68a,
+    #fbbf24,
+    #f59e0b,
+    #fde68a,
+    transparent
+  );
+
+  box-shadow:
+    0 -1px 10px rgba(251, 191, 36, 0.55),
+    0 0 18px rgba(245, 158, 11, 0.35);
+
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* 粒子閃光層：兩層星點（不同大小/速度） */
+#top_header::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+
+  /* 星點：用很多 radial-gradient 組合 */
+  background-image:
+    radial-gradient(
+      2px 2px at 10% 30%,
+      rgba(255, 255, 255, 0.95),
+      transparent 60%
+    ),
+    radial-gradient(
+      2px 2px at 22% 55%,
+      rgba(255, 255, 255, 0.75),
+      transparent 60%
+    ),
+    radial-gradient(
+      2px 2px at 35% 22%,
+      rgba(255, 255, 255, 0.9),
+      transparent 60%
+    ),
+    radial-gradient(
+      2px 2px at 48% 60%,
+      rgba(255, 255, 255, 0.7),
+      transparent 60%
+    ),
+    radial-gradient(
+      2px 2px at 62% 28%,
+      rgba(255, 255, 255, 0.9),
+      transparent 60%
+    ),
+    radial-gradient(
+      2px 2px at 75% 52%,
+      rgba(255, 255, 255, 0.8),
+      transparent 60%
+    ),
+    radial-gradient(
+      2px 2px at 88% 24%,
+      rgba(255, 255, 255, 0.85),
+      transparent 60%
+    ),
+    radial-gradient(
+      3px 3px at 18% 18%,
+      rgba(253, 230, 138, 0.85),
+      transparent 60%
+    ),
+    radial-gradient(
+      3px 3px at 54% 22%,
+      rgba(251, 191, 36, 0.8),
+      transparent 60%
+    ),
+    radial-gradient(
+      3px 3px at 82% 40%,
+      rgba(253, 230, 138, 0.75),
+      transparent 60%
+    ),
+    radial-gradient(
+      1.5px 1.5px at 15% 70%,
+      rgba(255, 255, 255, 0.65),
+      transparent 60%
+    ),
+    radial-gradient(
+      1.5px 1.5px at 40% 78%,
+      rgba(255, 255, 255, 0.6),
+      transparent 60%
+    ),
+    radial-gradient(
+      1.5px 1.5px at 67% 74%,
+      rgba(255, 255, 255, 0.6),
+      transparent 60%
+    ),
+    radial-gradient(
+      1.5px 1.5px at 92% 72%,
+      rgba(255, 255, 255, 0.55),
+      transparent 60%
+    );
+
+  animation: headerSparkle 5.5s ease-in-out infinite;
+  opacity: 0.85;
+  filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.25));
+}
+
+/* 讓內容（logo）在粒子之上 */
+#top_header .header-inner {
+  position: relative;
+  z-index: 3;
+}
+
+.header-inner {
+  width: 1200px;
+  max-width: 95vw;
+  display: flex;
+  align-items: center;
+}
+
+.header-logo {
+  height: 50px;
+  object-fit: contain;
+}
+
+/* 粒子閃光：閃爍 + 微位移 */
+@keyframes headerSparkle {
+  0% {
+    opacity: 0.55;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  35% {
+    opacity: 0.95;
+    transform: translate3d(6px, -2px, 0) scale(1.01);
+  }
+  65% {
+    opacity: 0.7;
+    transform: translate3d(-6px, 2px, 0) scale(1.01);
+  }
+  100% {
+    opacity: 0.55;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
 /* button */
 #button_list {
   margin-top: 24px;
