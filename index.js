@@ -183,7 +183,7 @@ async function loadWinners() {
       prize:prize_no ( no, item_name,qty,image_url )
     `,
     )
-    .order("created_at", { ascending: false });
+    .order("prize_no", { ascending: true });
 
   if (error) {
     console.error(error);
@@ -226,7 +226,7 @@ function renderWinners(data = []) {
 
   const head = document.createElement("div");
   head.className = "list-head";
-  head.style.gridTemplateColumns = "80px 1.2fr 100px 80px 80px 80px 3fr";
+  head.style.gridTemplateColumns = "80px 2fr 100px 70px 70px 70px 6fr";
   head.innerHTML = `
     <div class="cell">no</div>
     <div class="cell">品項</div>
@@ -259,7 +259,7 @@ function renderWinners(data = []) {
 
     const row = document.createElement("div");
     row.className = "list-row";
-    row.style.gridTemplateColumns = "80px 1.2fr 100px 80px 80px 80px 3fr";
+    row.style.gridTemplateColumns = "80px 2fr 100px 70px 70px 70px 6fr";
     row.innerHTML = `
       <div class="cell">${w.prize?.no ?? ""}獎</div>
       <div class="cell">${escapeHtml(w.prize?.item_name ?? "")}</div>

@@ -353,7 +353,7 @@ async function loadWinners() {
       prize:prize_no ( no, item_name,qty,image_url )
     `,
     )
-    .order("created_at", { ascending: false });
+    .order("prize_no", { ascending: true });
 
   if (error) {
     console.error(error);
