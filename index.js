@@ -68,11 +68,11 @@ async function doLuckyDraw() {
   await new Promise((r) => setTimeout(r, 900));
   //抽獎
   const pick = candidates[Math.floor(Math.random() * candidates.length)];
-  _winnerIds.add(pick.id);
+  _winnerIds.add(pick.no);
   //顯示結果
   openDrawModal(`
     <div style="font-size:20px;"><b>🎉 恭喜中獎！</b></div>
-    <div><b>序號：</b>${pick.id}</div>
+    <div><b>序號：</b>${pick.no}</div>
     <div><b>姓名：</b>${escapeHtml(pick.emp_name ?? "")}</div>
     <div><b>手機：</b>${escapeHtml(pick.emp_phone ?? "")}</div>
     <div id="draw_qr" style="margin-top:12px; display:flex; justify-content:center;"></div>
@@ -85,7 +85,7 @@ async function doLuckyDraw() {
   base.search = "";
   base.hash = "";
   if (base.pathname.endsWith("/")) base.pathname += "index.html";
-  base.searchParams.set("emp", pick.id);
+  base.searchParams.set("emp", pick.no);
 
   const qrUrl = base.toString();
 
@@ -194,7 +194,6 @@ async function loadWinners() {
   _winnersCache = data || [];
   renderWinners(_winnersCache);
 }
-////中獎清單
 function renderWinners(data = []) {
   const el = document.getElementById("employee_list");
   el.innerHTML = "";
@@ -227,7 +226,7 @@ function renderWinners(data = []) {
 
   const head = document.createElement("div");
   head.className = "list-head";
-  head.style.gridTemplateColumns = "80px 1.2fr 1.2fr 80px 80px 80px 1.6fr";
+  head.style.gridTemplateColumns = "80px 1.2fr 100px 80px 80px 80px 3fr";
   head.innerHTML = `
     <div class="cell">no</div>
     <div class="cell">品項</div>
@@ -260,7 +259,7 @@ function renderWinners(data = []) {
 
     const row = document.createElement("div");
     row.className = "list-row";
-    row.style.gridTemplateColumns = "80px 1.2fr 1.2fr 80px 80px 80px 1.6fr";
+    row.style.gridTemplateColumns = "80px 1.2fr 100px 80px 80px 80px 3fr";
     row.innerHTML = `
       <div class="cell">${w.prize?.no ?? ""}獎</div>
       <div class="cell">${escapeHtml(w.prize?.item_name ?? "")}</div>

@@ -319,9 +319,12 @@ body {
   display: flex;
   justify-content: center;
   margin-top: 24px;
+  padding: 0 12px;
 }
 .list-wrap {
-  width: min(1000px, 98vw);
+  width: 1200px;
+  max-width: 98vw;
+  margin: 0 auto;
   background: #ffffff;
   border-radius: 14px;
   padding: 20px;
@@ -365,6 +368,7 @@ body {
   transition:
     transform 120ms ease,
     background 120ms ease;
+  align-items: start; /* 讓內容靠上對齊 */
 }
 .list-row:nth-child(even) {
   background: #f0fdfa;
@@ -375,9 +379,9 @@ body {
 }
 .cell {
   min-width: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: anywhere; /*避免爆版*/
 }
 .cell-actions {
   display: flex;

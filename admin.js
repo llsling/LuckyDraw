@@ -91,7 +91,7 @@ function renderEmployees(data) {
 
   const head = document.createElement("div");
   head.className = "list-head";
-  head.style.gridTemplateColumns = "80px 1fr 1fr 1.4fr";
+  head.style.gridTemplateColumns = "80px 2fr 3fr 6fr";
   head.innerHTML = `
     <div class="cell">序號</div>
     <div class="cell">姓名</div>
@@ -105,7 +105,7 @@ function renderEmployees(data) {
     const qrId = `qr_${emp.no}`; //QRcode id
     const row = document.createElement("div");
     row.className = "list-row";
-    row.style.gridTemplateColumns = "80px 1fr 1fr 1.4fr";
+    row.style.gridTemplateColumns = "80px 2fr 3fr 6fr";
     row.innerHTML = `
       <div class="cell">${emp.no ?? ""}</div>
       <div class="cell">${escapeHtml(emp.emp_name ?? "")}</div>
@@ -313,7 +313,7 @@ function renderPrizes(data) {
 
   const head = document.createElement("div");
   head.className = "list-head";
-  head.style.gridTemplateColumns = "80px 1.1fr 1.6fr 80px";
+  head.style.gridTemplateColumns = "80px 1.4fr 1.1fr 80px";
   head.innerHTML = `
     <div class="cell">no</div>
     <div class="cell">品項</div>
@@ -325,7 +325,7 @@ function renderPrizes(data) {
   data.forEach((p) => {
     const row = document.createElement("div");
     row.className = "list-row";
-    row.style.gridTemplateColumns = "80px 1.1fr 1.6fr 80px";
+    row.style.gridTemplateColumns = "80px 1.4fr 1.1fr 80px";
     row.innerHTML = `
       <div class="cell">${p.no ?? ""}獎</div>
       <div class="cell">${escapeHtml(p.item_name ?? "")}</div>
@@ -340,6 +340,7 @@ function renderPrizes(data) {
   el.appendChild(wrap);
 }
 
+////中獎清單
 async function loadWinners() {
   const { data, error } = await supabaseClient
     .from("winner")
@@ -363,7 +364,6 @@ async function loadWinners() {
   _winnersCache = data || [];
   renderWinners(_winnersCache);
 }
-////中獎清單
 function renderWinners(data = []) {
   const el = document.getElementById("employee_list");
   el.innerHTML = "";
@@ -396,7 +396,7 @@ function renderWinners(data = []) {
 
   const head = document.createElement("div");
   head.className = "list-head";
-  head.style.gridTemplateColumns = "80px 1.2fr 1.2fr 80px 80px 80px 1.6fr";
+  head.style.gridTemplateColumns = "80px 2fr 100px 70px 70px 70px 6fr";
   head.innerHTML = `
     <div class="cell">no</div>
     <div class="cell">品項</div>
@@ -429,7 +429,7 @@ function renderWinners(data = []) {
 
     const row = document.createElement("div");
     row.className = "list-row";
-    row.style.gridTemplateColumns = "80px 1.2fr 1.2fr 80px 80px 80px 1.6fr";
+    row.style.gridTemplateColumns = "80px 2fr 100px 70px 70px 70px 6fr";
     row.innerHTML = `
       <div class="cell">${w.prize?.no ?? ""}獎</div>
       <div class="cell">${escapeHtml(w.prize?.item_name ?? "")}</div>
