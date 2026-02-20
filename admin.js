@@ -29,6 +29,11 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   // 預設顯示中獎者
   switchView("winner");
+  //QR(URL帶 ?emp=28)
+  // const empId = new URL(location.href).searchParams.get("emp");
+  // if (empId !== null && empId !== "") {
+  //   openEmployeeById(empId);
+  // }
 });
 async function switchView(view) {
   _currentView = view;
@@ -462,3 +467,43 @@ function renderWinners(data = []) {
     wrap.appendChild(row);
   }
 }
+
+////員工資料modal(掃QRCode後顯示的中獎人員)
+async function openEmployeeById(empId) {
+  const id = parseInt(empId, 10);
+  if (!Number.isInteger(id)) return;
+  const { data, error } = await supabaseClient
+    .from("employee")
+    .select("*")
+    .eq("id", id)
+    .single();
+  if (error || !data) {
+    console.error("DB select error:", error);
+    alert("員工資料讀取失敗");
+    return;
+  }
+  openEmpModal(`
+    <div>🎉 恭喜中獎！ <b>序號：</b>${data.id}</div>
+    <div><b>姓名：</b>${escapeHtml(data.emp_name ?? "")}</div>
+    <div><b>手機：</b>${escapeHtml(data.emp_phone ?? "")}</div>
+  `);
+}
+
+////員工資料modal開
+function openEmpModal(html) {
+  document.getElementById("emp_detail").innerHTML = html;
+  document.getElementById("emp_backdrop").classList.add("show");
+}
+//員工資料modal關
+function closeEmpModal() {
+  document.getElementById("emp_backdrop").classList.remove("show");
+  document.getElementById("emp_detail").innerHTML = "";
+  const cleanUrl = location.origin + location.pathname;
+  history.replaceState({}, "", cleanUrl);
+}
+// 關閉事件
+document.getElementById("emp_close").addEventListener("click", closeEmpModal);
+document.getElementById("emp_ok").addEventListener("click", closeEmpModal);
+document.getElementById("emp_backdrop").addEventListener("click", (e) => {
+  if (e.target.id === "emp_backdrop") closeEmpModal();
+});

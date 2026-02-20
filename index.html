@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="./index.css" />
   </head>
   <body>
+    <!-- top_header -->
     <div id="top_header">
       <div class="header-inner">
         <img src="./img/logo.png" alt="logo" class="header-logo" />
@@ -18,8 +19,6 @@
       <!-- <button id="btn_admin">管理者頁面</button> -->
       <!--獎項按鈕 -->
       <div id="prize_buttons"></div>
-      <button id="prize" style="display: none">獎項清單</button>
-      <!-- <button id="draw_btn" style="margin-top: 12px">抽獎!🎲</button> -->
     </div>
     <!-- 獎項資訊 modal -->
     <div id="prize_backdrop">
@@ -35,35 +34,7 @@
     <div id="employee">
       <div id="employee_list"></div>
     </div>
-    <!-- 抽獎結果modal -->
-    <!-- <div id="draw_backdrop">
-      <div id="draw_modal">
-        <button id="draw_close">X</button>
-        <h3>抽獎結果</h3>
-        <div id="draw_body"></div>
-        <div
-          style="
-            margin-top: 12px;
-            display: flex;
-            gap: 10px;
-            justify-content: flex-end;
-          "
-        >
-          <button id="draw_again">再抽一次</button>
-          <button id="draw_ok">確定</button>
-        </div>
-      </div>
-    </div> -->
-    <!-- 員工資料modal(掃QRCode後顯示的中獎人員) -->
-    <div id="emp_backdrop">
-      <div id="emp_modal">
-        <button id="emp_close">X</button>
-        <h3>Hi!</h3>
-        <div id="emp_detail"></div>
-        <button id="emp_ok">確定</button>
-      </div>
-    </div>
-    <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="./index.js"></script>
   </body>

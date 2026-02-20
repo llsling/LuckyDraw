@@ -10,16 +10,7 @@ console.log("Supabase initialized", supabaseClient);
 
 //頁面載入中獎清單
 document.addEventListener("DOMContentLoaded", async () => {
-  await loadPrizes(); // 產生獎項按鈕
-  await loadWinners(); // 撈中獎清單（並 render）
-  //QR(URL帶 ?emp=28)
-  // const empId = new URL(location.href).searchParams.get("emp");
-  // if (empId !== null && empId !== "") {
-  //   openEmployeeById(empId);
-  // }
-});
-document.getElementById("prize").addEventListener("click", () => {
-  loadWinners();
+  await Promise.all([loadPrizes(), loadWinners()]);
 });
 //讀取
 let _employeesCache = [];
@@ -35,126 +26,6 @@ async function loadEmployees() {
   }
   _employeesCache = employee || [];
 }
-
-////抽獎!🎲按鈕
-// document.getElementById("draw_btn").addEventListener("click", doLuckyDraw);
-// //再抽一次
-// document.getElementById("draw_again").addEventListener("click", doLuckyDraw);
-// let _winnerIds = new Set(); // 記錄已中獎人員
-// //抽獎
-// async function doLuckyDraw() {
-//   //確定有資料
-//   if (!_employeesCache || _employeesCache.length === 0) {
-//     await loadEmployees();
-//   }
-//   //排除已中獎
-//   let candidates = (_employeesCache || []).filter(
-//     (e) => e?.id != null && !_winnerIds.has(e.id),
-//   );
-//   //抽完一輪重置
-//   if (candidates.length === 0) {
-//     _winnerIds.clear();
-//     candidates = (_employeesCache || []).filter((e) => e?.id != null);
-//   }
-//   //沒人
-//   if (candidates.length === 0) {
-//     openDrawModal(`<b>目前沒有可抽的員工</b>`);
-//     return;
-//   }
-//   //顯示「抽獎中…」🎲
-//   openDrawModal(
-//     `<div style="font-size:18px;"><b>抽獎中…</b> 🎲</div><div style="opacity:.7;">請稍候</div>`,
-//   );
-//   //延遲效果
-//   await new Promise((r) => setTimeout(r, 900));
-//   //抽獎
-//   const pick = candidates[Math.floor(Math.random() * candidates.length)];
-//   _winnerIds.add(pick.no);
-//   //顯示結果
-//   openDrawModal(`
-//     <div style="font-size:20px;"><b>🎉 恭喜中獎！</b></div>
-//     <div><b>序號：</b>${pick.no}</div>
-//     <div><b>姓名：</b>${escapeHtml(pick.emp_name ?? "")}</div>
-//     <div><b>手機：</b>${escapeHtml(pick.emp_phone ?? "")}</div>
-//     <div id="draw_qr" style="margin-top:12px; display:flex; justify-content:center;"></div>
-//     <div style="margin-top:10px; opacity:.7; font-size:13px;">
-//       剩餘可抽人數：${candidates.length - 1}
-//     </div>
-//   `);
-//   //再產生 QR
-//   const base = new URL(location.href);
-//   base.search = "";
-//   base.hash = "";
-//   if (base.pathname.endsWith("/")) base.pathname += "index.html";
-//   base.searchParams.set("emp", pick.no);
-
-//   const qrUrl = base.toString();
-
-//   // 清空容器避免重複產生疊在一起
-//   const qrEl = document.getElementById("draw_qr");
-//   qrEl.innerHTML = "";
-//   new QRCode(qrEl, {
-//     text: qrUrl,
-//     width: 128,
-//     height: 128,
-//     correctLevel: QRCode.CorrectLevel.L,
-//   });
-// }
-// //抽獎modal開
-// function openDrawModal(html) {
-//   document.getElementById("draw_body").innerHTML = html;
-//   document.getElementById("draw_backdrop").classList.add("show");
-// }
-// //抽獎modal關
-// function closeDrawModal() {
-//   document.getElementById("draw_backdrop").classList.remove("show");
-//   document.getElementById("draw_body").innerHTML = "";
-// }
-// // 關閉事件
-// document.getElementById("draw_close").addEventListener("click", closeDrawModal);
-// document.getElementById("draw_ok").addEventListener("click", closeDrawModal);
-// document.getElementById("draw_backdrop").addEventListener("click", (e) => {
-//   if (e.target.id === "draw_backdrop") closeDrawModal();
-// });
-
-////員工資料modal(掃QRCode後顯示的中獎人員)
-async function openEmployeeById(empId) {
-  const id = parseInt(empId, 10);
-  if (!Number.isInteger(id)) return;
-  const { data, error } = await supabaseClient
-    .from("employee")
-    .select("*")
-    .eq("id", id)
-    .single();
-  if (error || !data) {
-    console.error("DB select error:", error);
-    alert("員工資料讀取失敗");
-    return;
-  }
-  openEmpModal(`
-    <div>🎉 恭喜中獎！ <b>序號：</b>${data.id}</div>
-    <div><b>姓名：</b>${escapeHtml(data.emp_name ?? "")}</div>
-    <div><b>手機：</b>${escapeHtml(data.emp_phone ?? "")}</div>
-  `);
-}
-//員工資料modal開
-function openEmpModal(html) {
-  document.getElementById("emp_detail").innerHTML = html;
-  document.getElementById("emp_backdrop").classList.add("show");
-}
-//員工資料modal關
-function closeEmpModal() {
-  document.getElementById("emp_backdrop").classList.remove("show");
-  document.getElementById("emp_detail").innerHTML = "";
-  const cleanUrl = location.origin + location.pathname;
-  history.replaceState({}, "", cleanUrl);
-}
-// 關閉事件
-document.getElementById("emp_close").addEventListener("click", closeEmpModal);
-document.getElementById("emp_ok").addEventListener("click", closeEmpModal);
-document.getElementById("emp_backdrop").addEventListener("click", (e) => {
-  if (e.target.id === "emp_backdrop") closeEmpModal();
-});
 
 // 簡單防 XSS（避免名字含 <script> 之類）
 function escapeHtml(str) {
