@@ -8,7 +8,7 @@ body {
   color: #1f2937;
 
   background-image:
-    url("/img/horse-bg.png"),
+    url("./img/horse-bg.png"),
     radial-gradient(
       circle at 20% 65%,
       rgba(255, 215, 0, 0.18),
@@ -151,15 +151,13 @@ body {
   text-align: center;
 }
 /* 員工名單 */
-#employee {
-  /* position: relative; */
-  /* background: #f5f7fa; */
+/* #employee {
   padding: 12px;
   margin-top: 24px;
   border-radius: 15px;
   display: flex;
   justify-content: center;
-}
+} */
 /* 員工卡片 */
 .emp-card {
   background: white;
