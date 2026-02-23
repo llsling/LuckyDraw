@@ -126,8 +126,9 @@ function renderEmployees(data) {
       const base = new URL(location.href);
       base.search = "";
       base.hash = "";
-      if (base.pathname.endsWith("/")) base.pathname += "index.html";
-      base.searchParams.set("emp", emp.id);
+      if (base.pathname.endsWith("/"))
+        base.pathname.replace(/admin\.html$/, "draw.html");
+      base.searchParams.set("emp", emp.no);
 
       const qrEl = document.getElementById(qrId);
       if (!qrEl) throw new Error("qrEl not found: " + qrId);

@@ -8,27 +8,20 @@ const supabaseClient = window.supabase.createClient(
 );
 console.log("Supabase initialized", supabaseClient);
 
-//頁面載入中獎清單
-document.addEventListener("DOMContentLoaded", async () => {
-  await Promise.all([loadPrizes(), loadWinners()]);
-});
-
-//讀取
-let _employeesCache = [];
-async function loadEmployees() {
-  const { data: employee, error: dbError } = await supabaseClient
-    .from("employee")
-    .select("*")
-    .order("id", { ascending: true });
-  if (dbError) {
-    console.error("DB select error:", dbError);
-    alert("讀取失敗：" + dbError.message);
+let _winnersCache = [];
+////驗證
+(function requirePin() {
+  if (sessionStorage.getItem("draw_auth")) return;
+  const pin = prompt("請輸入抽獎PIN");
+  if (pin !== "2026HORSE") {
+    alert("無權限");
+    location.href = "index.html";
     return;
   }
-  _employeesCache = employee || [];
-}
+  sessionStorage.setItem("draw_auth", "1");
+})();
 
-// 簡單防 XSS（避免名字含 <script> 之類）
+//防 XSS
 function escapeHtml(str) {
   return String(str)
     .replaceAll("&", "&amp;")
@@ -37,15 +30,50 @@ function escapeHtml(str) {
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
 }
+function setScanStatus(ok) {
+  const el = document.getElementById("scan_status");
+  if (!el) return;
 
-//前往管理者頁面
-// document.getElementById("btn_admin").addEventListener("click", () => {
-//   location.href = "./admin.html";
+  el.textContent = ok ? "✅ 寫入成功" : "❌ 寫入失敗";
+  // 2 秒後清空（可選）
+  setTimeout(() => {
+    if (el.textContent === (ok ? "✅ 寫入成功" : "❌ 寫入失敗"))
+      el.textContent = "";
+  }, 2000);
+}
+function cleanEmpQueryString() {
+  const cleanUrl = location.origin + location.pathname;
+  history.replaceState({}, "", cleanUrl);
+}
+
+// function openEmpModal(html) {
+//   document.getElementById("emp_detail").innerHTML = html;
+//   document.getElementById("emp_backdrop").classList.add("show");
+// }
+// function closeEmpModal() {
+//   document.getElementById("emp_backdrop").classList.remove("show");
+//   document.getElementById("emp_detail").innerHTML = "";
+// }
+// document.getElementById("emp_close").addEventListener("click", closeEmpModal);
+// document.getElementById("emp_ok").addEventListener("click", closeEmpModal);
+// document.getElementById("emp_backdrop").addEventListener("click", (e) => {
+//   if (e.target.id === "emp_backdrop") closeEmpModal();
 // });
+
+//頁面載入中獎清單
+document.addEventListener("DOMContentLoaded", async () => {
+  await Promise.all([loadPrizes(), loadWinners()]);
+  // 若 QR 帶 ?emp=xxx，嘗試抽獎
+  const empParam = new URL(location.href).searchParams.get("emp");
+  if (empParam) {
+    await handleScan(empParam);
+  }
+});
 
 ////獎項按鈕
 let _prizesCache = [];
-let _selectedPrize = null; // 目前選中的獎項
+let _selectedPrize = null; // 只用來顯示 modal，不用於掃描寫入
+let _scanInFlight = false; // 防止同一次載入重複寫入
 async function loadPrizes() {
   // 1️⃣ 讀取所有獎項
   const { data: prizes, error: prizeError } = await supabaseClient
@@ -105,12 +133,32 @@ function renderPrizeButtons(prizes = []) {
       btn.disabled = true;
       btn.classList.add("btn-disabled");
     } else {
-      btn.addEventListener("click", () => {
+      btn.addEventListener("click", async () => {
+        // 1) UI：標示選中
         host
           .querySelectorAll("button")
           .forEach((b) => b.classList.remove("btn-active"));
-
         btn.classList.add("btn-active");
+
+        // 2) 記住本機選擇（用來顯示用，不是安全用）
+        _selectedPrize = p;
+
+        // 3) ✅ 立刻寫入 DB：設定目前獎項
+        const { error } = await supabaseClient.rpc("set_active_prize", {
+          p_prize_no: p.no,
+        });
+
+        if (error) {
+          console.error(error);
+          alert("設定目前獎項失敗：" + error.message);
+
+          // 回滾 UI/狀態（避免主持人以為已設定成功）
+          btn.classList.remove("btn-active");
+          _selectedPrize = null;
+          return;
+        }
+
+        // 4) (可選) 繼續顯示獎品資訊
         openPrizeModal(p);
       });
     }
@@ -121,7 +169,6 @@ function renderPrizeButtons(prizes = []) {
 
 //獎項資訊 modal
 function openPrizeModal(prize) {
-  _selectedPrize = prize; // 目前選中的獎項
   const no = prize?.no ?? "";
   const name = prize?.item_name ?? "";
   const img = prize?.image_url
@@ -139,16 +186,29 @@ function openPrizeModal(prize) {
 
   document.getElementById("prize_backdrop").classList.add("show");
 }
-function closePrizeModal() {
+async function closePrizeModal() {
+  // 1) 先關畫面
   document.getElementById("prize_backdrop").classList.remove("show");
   document.getElementById("prize_body").innerHTML = "";
 
+  // 2) 清空 DB active prize
+  const { error } = await supabaseClient.rpc("set_active_prize", {
+    p_prize_no: null,
+  });
+
+  if (error) {
+    console.error("清空目前獎項失敗：", error);
+  }
+
+  // 3) 清掉 UI
   const host = document.getElementById("prize_buttons");
   if (host) {
     host
       .querySelectorAll("button")
       .forEach((b) => b.classList.remove("btn-active"));
   }
+
+  _selectedPrize = null;
 }
 document
   .getElementById("prize_close")
@@ -157,6 +217,59 @@ document.getElementById("prize_ok").addEventListener("click", closePrizeModal);
 document.getElementById("prize_backdrop").addEventListener("click", (e) => {
   if (e.target.id === "prize_backdrop") closePrizeModal();
 });
+
+/* =========================
+   2) 抽獎：掃到 emp 後呼叫 RPC
+   - 規則：一人只能中一次（由 DB unique + draw_winner_once 保證）
+========================= */
+async function handleScan(empParam) {
+  // 防止某些掃碼 App 重複開頁造成重送
+  if (_scanInFlight) return;
+  _scanInFlight = true;
+
+  const empId = parseInt(empParam, 10);
+  if (!Number.isInteger(empId)) {
+    setScanStatus(false);
+    cleanEmpQueryString();
+    _scanInFlight = false;
+    return;
+  }
+
+  const { data: result, error: rpcErr } = await supabaseClient.rpc(
+    "draw_winner_active",
+    {
+      p_employee_id: empId,
+    },
+  );
+
+  if (rpcErr) {
+    console.error(rpcErr);
+    setScanStatus(false);
+    cleanEmpQueryString();
+    _scanInFlight = false;
+    return;
+  }
+
+  const r = Array.isArray(result) ? result[0] : null;
+
+  if (!r || !r.ok) {
+    setScanStatus(false);
+    await refreshUIAfterDraw();
+    cleanEmpQueryString();
+    _scanInFlight = false;
+    return;
+  }
+
+  setScanStatus(true);
+  await refreshUIAfterDraw();
+  cleanEmpQueryString();
+  _scanInFlight = false;
+}
+
+async function refreshUIAfterDraw() {
+  // 抽完後刷新：按鈕剩餘名額 & 中獎清單
+  await Promise.all([loadPrizes(), loadWinners()]);
+}
 
 ////中獎清單
 async function loadWinners() {

@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>2026馬年抽獎活動</title>
-    <meta property="og:title" content="2026馬年抽獎活動" />
+    <meta property="og:title" content="抽獎專用" />
     <meta property="og:description" content="2026馬到成功!馬年抽獎活動" />
     <link rel="stylesheet" href="./index.css" />
   </head>
@@ -15,10 +15,13 @@
       </div>
     </div>
     <div id="button_list">
-      <!-- <button id="btn_admin">管理者頁面</button> -->
       <!--獎項按鈕 -->
-      <!-- <div id="prize_buttons"></div> -->
+      <div id="prize_buttons"></div>
     </div>
+    <div
+      id="scan_status"
+      style="text-align: center; margin: 12px 0; font-weight: 900"
+    ></div>
     <!-- 獎項資訊 modal -->
     <div id="prize_backdrop">
       <div id="prize_modal">
@@ -34,16 +37,15 @@
       <div id="employee_list"></div>
     </div>
     <!-- 員工中獎modal(掃QRCode後顯示) -->
-    <!-- <div id="emp_backdrop">
+    <div id="emp_backdrop">
       <div id="emp_modal">
         <button id="emp_close">X</button>
-        <h3>Hi!</h3>
-        <div id="emp_detail"></div>
-        <button id="emp_ok">確定</button>
+        <div style="display: flex; justify-content: flex-end; margin-top: 12px">
+          <button id="prize_ok">關閉</button>
+        </div>
       </div>
-    </div> -->
-    <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+    </div>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="./index.js"></script>
+    <script src="./draw.js"></script>
   </body>
 </html>
