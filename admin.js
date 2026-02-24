@@ -126,8 +126,15 @@ function renderEmployees(data) {
       const base = new URL(location.href);
       base.search = "";
       base.hash = "";
-      if (base.pathname.endsWith("/"))
-        base.pathname.replace(/admin\.html$/, "draw.html");
+
+      // ✅ 不管你現在在哪個頁面，都強制導到 draw.html
+      const dir = base.pathname.substring(
+        0,
+        base.pathname.lastIndexOf("/") + 1,
+      );
+      base.pathname = dir + "draw.html";
+
+      // ✅ emp 放券號（employee.no）
       base.searchParams.set("emp", emp.no);
 
       const qrEl = document.getElementById(qrId);
