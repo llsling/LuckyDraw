@@ -36,10 +36,10 @@ function setScanStatus(ok) {
 
   el.textContent = ok ? "✅ 寫入成功" : "❌ 寫入失敗";
   // 2 秒後清空（可選）
-  setTimeout(() => {
-    if (el.textContent === (ok ? "✅ 寫入成功" : "❌ 寫入失敗"))
-      el.textContent = "";
-  }, 2000);
+  // setTimeout(() => {
+  //   if (el.textContent === (ok ? "✅ 寫入成功" : "❌ 寫入失敗"))
+  //     el.textContent = "";
+  // }, 2000);
 }
 function cleanEmpQueryString() {
   const cleanUrl = location.origin + location.pathname;
@@ -62,12 +62,20 @@ function cleanEmpQueryString() {
 
 //頁面載入中獎清單
 document.addEventListener("DOMContentLoaded", async () => {
-  await Promise.all([loadPrizes(), loadWinners()]);
-  // 若 QR 帶 ?emp=xxx，嘗試抽獎
-  const empParam = new URL(location.href).searchParams.get("emp");
-  if (empParam) {
-    await handleScan(empParam);
-  }
+  // const empParam = new URL(location.href).searchParams.get("emp");
+
+  // // ✅ 先處理掃碼寫入（不被 loadPrizes/loadWinners 卡住）
+  // if (empParam) {
+  //   handleScan(empParam).catch((e) => {
+  //     console.error("handleScan fatal:", e);
+  //     setScanStatus(false);
+  //     cleanEmpQueryString();
+  //   });
+  // }
+
+  // ✅ UI 後載入（即使失敗也不影響寫入流程）
+  loadPrizes().catch((e) => console.error("loadPrizes fatal:", e));
+  loadWinners().catch((e) => console.error("loadWinners fatal:", e));
 });
 
 ////獎項按鈕
@@ -222,54 +230,55 @@ document.getElementById("prize_backdrop").addEventListener("click", (e) => {
    2) 抽獎：掃到 emp 後呼叫 RPC
    - 規則：一人只能中一次（由 DB unique + draw_winner_once 保證）
 ========================= */
-async function handleScan(empParam) {
-  // 防止某些掃碼 App 重複開頁造成重送
-  if (_scanInFlight) return;
-  _scanInFlight = true;
+// async function handleScan(empParam) {
+//   // 防止某些掃碼 App 重複開頁造成重送
+//   if (_scanInFlight) return;
+//   _scanInFlight = true;
 
-  const empId = parseInt(empParam, 10);
-  if (!Number.isInteger(empId)) {
-    setScanStatus(false);
-    cleanEmpQueryString();
-    _scanInFlight = false;
-    return;
-  }
+//   const empNo = parseInt(empParam, 10);
+//   if (!Number.isInteger(empNo)) {
+//     setScanStatus(false);
+//     cleanEmpQueryString();
+//     _scanInFlight = false;
+//     return;
+//   }
 
-  const { data: result, error: rpcErr } = await supabaseClient.rpc(
-    "draw_winner_active",
-    {
-      p_employee_no: empNo,
-    },
-  );
+//   const { data: result, error: rpcErr } = await supabaseClient.rpc(
+//     "draw_winner_active",
+//     {
+//       p_employee_no: empNo,
+//     },
+//   );
 
-  if (rpcErr) {
-    console.error(rpcErr);
-    setScanStatus(false);
-    cleanEmpQueryString();
-    _scanInFlight = false;
-    return;
-  }
+//   if (rpcErr) {
+//     console.error(rpcErr);
+//     setScanStatus(false);
+//     alert("寫入失敗(RPC): " + (rpcErr.message || ""));
+//     cleanEmpQueryString();
+//     _scanInFlight = false;
+//     return;
+//   }
 
-  const r = Array.isArray(result) ? result[0] : null;
+//   const r = Array.isArray(result) ? result[0] : null;
 
-  if (!r || !r.ok) {
-    setScanStatus(false);
-    await refreshUIAfterDraw();
-    cleanEmpQueryString();
-    _scanInFlight = false;
-    return;
-  }
+//   if (!r || !r.ok) {
+//     setScanStatus(false);
+//     await refreshUIAfterDraw();
+//     cleanEmpQueryString();
+//     _scanInFlight = false;
+//     return;
+//   }
 
-  setScanStatus(true);
-  await refreshUIAfterDraw();
-  cleanEmpQueryString();
-  _scanInFlight = false;
-}
+//   setScanStatus(true);
+//   await refreshUIAfterDraw();
+//   cleanEmpQueryString();
+//   _scanInFlight = false;
+// }
 
-async function refreshUIAfterDraw() {
-  // 抽完後刷新：按鈕剩餘名額 & 中獎清單
-  await Promise.all([loadPrizes(), loadWinners()]);
-}
+// async function refreshUIAfterDraw() {
+//   // 抽完後刷新：按鈕剩餘名額 & 中獎清單
+//   await Promise.all([loadPrizes(), loadWinners()]);
+// }
 
 ////中獎清單
 async function loadWinners() {

@@ -127,12 +127,12 @@ function renderEmployees(data) {
       base.search = "";
       base.hash = "";
 
-      // ✅ 不管你現在在哪個頁面，都強制導到 draw.html
+      // ✅ 不管你現在在哪個頁面，都強制導到 index.html
       const dir = base.pathname.substring(
         0,
         base.pathname.lastIndexOf("/") + 1,
       );
-      base.pathname = dir + "draw.html";
+      base.pathname = dir + "index.html";
 
       // ✅ emp 放券號（employee.no）
       base.searchParams.set("emp", emp.no);

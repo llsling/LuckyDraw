@@ -8,9 +8,23 @@ const supabaseClient = window.supabase.createClient(
 );
 console.log("Supabase initialized", supabaseClient);
 
+let _winnersCache = [];
 //頁面載入中獎清單
 document.addEventListener("DOMContentLoaded", async () => {
-  await Promise.all([loadPrizes(), loadWinners()]);
+  const empParam = new URL(location.href).searchParams.get("emp");
+
+  // ✅ 先處理掃碼寫入（不被 loadPrizes/loadWinners 卡住）
+  if (empParam) {
+    handleScan(empParam).catch((e) => {
+      console.error("handleScan fatal:", e);
+      setScanStatus(false);
+      cleanEmpQueryString();
+    });
+  }
+
+  // ✅ UI 後載入（即使失敗也不影響寫入流程）
+  loadPrizes().catch((e) => console.error("loadPrizes fatal:", e));
+  loadWinners().catch((e) => console.error("loadWinners fatal:", e));
 });
 
 //讀取
@@ -157,6 +171,67 @@ document.getElementById("prize_ok").addEventListener("click", closePrizeModal);
 document.getElementById("prize_backdrop").addEventListener("click", (e) => {
   if (e.target.id === "prize_backdrop") closePrizeModal();
 });
+
+////
+let _scanInFlight = false;
+
+function setScanStatus(ok, msg = "") {
+  const el = document.getElementById("scan_status");
+  if (!el) return;
+  el.textContent = ok ? `✅ 寫入成功 ${msg}` : `❌ 寫入失敗 ${msg}`;
+}
+
+function cleanEmpQueryString() {
+  const cleanUrl = location.origin + location.pathname;
+  history.replaceState({}, "", cleanUrl);
+}
+
+async function refreshUIAfterDraw() {
+  await Promise.all([loadPrizes(), loadWinners()]);
+}
+
+async function handleScan(empParam) {
+  if (_scanInFlight) return;
+  _scanInFlight = true;
+
+  const empNo = parseInt(empParam, 10);
+  if (!Number.isInteger(empNo)) {
+    setScanStatus(false, "(emp 參數不合法)");
+    cleanEmpQueryString();
+    _scanInFlight = false;
+    return;
+  }
+
+  // 這裡沿用你原本 draw.js 的 RPC
+  const { data: result, error: rpcErr } = await supabaseClient.rpc(
+    "draw_winner_active",
+    { p_employee_no: empNo },
+  );
+
+  if (rpcErr) {
+    console.error(rpcErr);
+    setScanStatus(false, "(RPC error)");
+    alert("寫入失敗(RPC): " + (rpcErr.message || ""));
+    cleanEmpQueryString();
+    _scanInFlight = false;
+    return;
+  }
+
+  const r = Array.isArray(result) ? result[0] : null;
+
+  if (!r || !r.ok) {
+    setScanStatus(false, r?.message ? `(${r.message})` : "");
+    await refreshUIAfterDraw();
+    cleanEmpQueryString();
+    _scanInFlight = false;
+    return;
+  }
+
+  setScanStatus(true);
+  await refreshUIAfterDraw();
+  cleanEmpQueryString();
+  _scanInFlight = false;
+}
 
 ////中獎清單
 async function loadWinners() {
