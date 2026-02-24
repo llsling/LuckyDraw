@@ -238,7 +238,7 @@ async function handleScan(empParam) {
   const { data: result, error: rpcErr } = await supabaseClient.rpc(
     "draw_winner_active",
     {
-      p_employee_id: empId,
+      p_employee_no: empNo,
     },
   );
 
