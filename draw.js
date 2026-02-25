@@ -22,8 +22,12 @@ console.log("Supabase initialized", supabaseClient);
 
 //頁面載入中獎清單
 document.addEventListener("DOMContentLoaded", async () => {
-  loadPrizes().catch((e) => console.error("loadPrizes fatal:", e));
-  loadWinners().catch((e) => console.error("loadWinners fatal:", e));
+  try {
+    await loadPrizes();
+    await loadWinners();
+  } catch (e) {
+    console.error("init fatal:", e);
+  }
 });
 
 ////獎項按鈕
@@ -63,6 +67,7 @@ async function loadPrizes() {
     };
   });
   renderPrizeButtons(_prizesCache);
+  updateOpenModalRemainFromCache();
 }
 //prizes預設空陣列
 function renderPrizeButtons(prizes = []) {
@@ -108,9 +113,55 @@ function renderPrizeButtons(prizes = []) {
     host.appendChild(btn);
   }
 }
+//modal 開著才輪詢
+let _activeModalPrizeNo = null; // 目前 modal 顯示的獎項 no
+function updateOpenModalRemainFromCache() {
+  if (_activeModalPrizeNo == null) return;
+
+  const backdrop = document.getElementById("prize_backdrop");
+  if (!backdrop?.classList.contains("show")) return;
+
+  const p = (_prizesCache || []).find((x) => x.no === _activeModalPrizeNo);
+  if (!p) return;
+
+  const remainEl = document.getElementById("modal_remain_value");
+  if (remainEl) remainEl.textContent = String(p.remain ?? 0);
+
+  const drawnEl = document.getElementById("modal_drawn_value");
+  if (drawnEl) drawnEl.textContent = String(p.drawn ?? 0);
+
+  const qtyEl = document.getElementById("modal_qty_value");
+  if (qtyEl) qtyEl.textContent = String(p.qty ?? 0);
+
+  const statusEl = document.getElementById("modal_status");
+  if (statusEl) {
+    statusEl.textContent = ""; // ✅ 先清掉舊訊息
+    statusEl.style.color = ""; // ✅ 清掉舊顏色
+  }
+
+  // 🔴 判斷是否抽完
+  if (p.remain === 0) {
+    const statusEl = document.getElementById("modal_status");
+    if (statusEl) {
+      statusEl.textContent = "🎉 獎項已抽完 🎉";
+      statusEl.style.color = "#dc2626";
+    }
+  }
+  //抽完自動關閉
+  // if (!_modalClosingScheduled) {
+  //   _modalClosingScheduled = true;
+
+  //   setTimeout(() => {
+  //     closePrizeModal();
+  //     _modalClosingScheduled = false;
+  //   }, 2000);
+  // }
+}
 
 //獎項資訊 modal
 function openPrizeModal(prize) {
+  _activeModalPrizeNo = prize?.no ?? null;
+
   const no = prize?.no ?? "";
   const name = prize?.item_name ?? "";
   const img = prize?.image_url
@@ -121,16 +172,28 @@ function openPrizeModal(prize) {
       <div class="prize-title">
         ${escapeHtml(no)}獎 - ${escapeHtml(name)}
       </div>
+      <div id="modal_status" style="font-size:24px;font-weight:900;margin:8px 0;"></div>
       <div class="prize-image">
         ${img}
+      </div>
+      <div style="font-size:18px;font-weight:900;margin:16px 0 16px;">
+        總名額：<span id="modal_qty_value">${escapeHtml(prize?.qty ?? 0)}</span>
+       　已抽：<span id="modal_drawn_value">${escapeHtml(prize?.drawn ?? 0)}</span>
+       　剩餘：<span id="modal_remain_value"style="color:red;">${escapeHtml(prize?.remain ?? 0)}</span>
       </div>
     `;
 
   document.getElementById("prize_backdrop").classList.add("show");
+  startModalPolling();
 }
 async function closePrizeModal() {
-  document.getElementById("prize_backdrop").classList.remove("show");
-  document.getElementById("prize_body").innerHTML = "";
+  stopModalPolling();
+  _activeModalPrizeNo = null;
+
+  const backdrop = document.getElementById("prize_backdrop");
+  const body = document.getElementById("prize_body");
+  if (backdrop) backdrop.classList.remove("show");
+  if (body) body.innerHTML = "";
 
   //清DB active prize
   const { error } = await supabaseClient.rpc("set_active_prize", {
@@ -155,6 +218,24 @@ document
 document.getElementById("prize_backdrop").addEventListener("click", (e) => {
   if (e.target.id === "prize_backdrop") closePrizeModal();
 });
+
+let _modalPollTimer = null;
+function startModalPolling() {
+  if (_modalPollTimer) return;
+  _modalPollTimer = setInterval(() => {
+    const backdrop = document.getElementById("prize_backdrop");
+    if (!backdrop?.classList.contains("show") || _activeModalPrizeNo == null) {
+      stopModalPolling(); // ✅ 自動收斂
+      return;
+    }
+    loadPrizes();
+    loadWinners();
+  }, 1000);
+}
+function stopModalPolling() {
+  if (_modalPollTimer) clearInterval(_modalPollTimer);
+  _modalPollTimer = null;
+}
 
 ////中獎清單
 async function loadWinners() {

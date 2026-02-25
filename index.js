@@ -51,6 +51,8 @@ async function handleScan(empParam) {
       { p_employee_no: empNo },
     );
 
+    console.log("RPC raw result:", result);
+
     if (rpcErr) {
       console.error(rpcErr);
       setScanStatus(false, "(RPC error)");
@@ -58,7 +60,7 @@ async function handleScan(empParam) {
       return;
     }
 
-    const r = Array.isArray(result) ? result[0] : null;
+    const r = Array.isArray(result) ? result[0] : result;
 
     if (!r || !r.ok) {
       setScanStatus(false, r?.message ? `(${r.message})` : "");
@@ -66,7 +68,29 @@ async function handleScan(empParam) {
       return;
     }
 
-    setScanStatus(true);
+    let winnerText = "";
+    const { data: emp, error: empErr } = await supabaseClient
+      .from("employee")
+      .select("dep_name, emp_id, emp_name")
+      .eq("no", empNo)
+      .single();
+
+    if (!empErr && emp) {
+      winnerText = [emp.dep_name, emp.emp_id, emp.emp_name]
+        .filter(Boolean)
+        .join("-");
+    }
+
+    const msg =
+      r?.prize_no != null && winnerText
+        ? `(${r.prize_no}獎-${winnerText})`
+        : r?.prize_no != null
+          ? `(${r.prize_no}獎)`
+          : r?.message
+            ? `(${r.message})`
+            : "";
+
+    setScanStatus(true, msg);
     await loadWinners();
   } finally {
     cleanEmpQueryString();
