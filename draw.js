@@ -8,12 +8,11 @@ const supabaseClient = window.supabase.createClient(
 );
 console.log("Supabase initialized", supabaseClient);
 
-let _winnersCache = [];
 ////驗證
 (function requirePin() {
   if (sessionStorage.getItem("draw_auth")) return;
   const pin = prompt("請輸入抽獎PIN");
-  if (pin !== "2026HORSE") {
+  if (pin !== "2026") {
     alert("無權限");
     location.href = "index.html";
     return;
@@ -21,98 +20,40 @@ let _winnersCache = [];
   sessionStorage.setItem("draw_auth", "1");
 })();
 
-//防 XSS
-function escapeHtml(str) {
-  return String(str)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-}
-function setScanStatus(ok) {
-  const el = document.getElementById("scan_status");
-  if (!el) return;
-
-  el.textContent = ok ? "✅ 寫入成功" : "❌ 寫入失敗";
-  // 2 秒後清空（可選）
-  // setTimeout(() => {
-  //   if (el.textContent === (ok ? "✅ 寫入成功" : "❌ 寫入失敗"))
-  //     el.textContent = "";
-  // }, 2000);
-}
-function cleanEmpQueryString() {
-  const cleanUrl = location.origin + location.pathname;
-  history.replaceState({}, "", cleanUrl);
-}
-
-// function openEmpModal(html) {
-//   document.getElementById("emp_detail").innerHTML = html;
-//   document.getElementById("emp_backdrop").classList.add("show");
-// }
-// function closeEmpModal() {
-//   document.getElementById("emp_backdrop").classList.remove("show");
-//   document.getElementById("emp_detail").innerHTML = "";
-// }
-// document.getElementById("emp_close").addEventListener("click", closeEmpModal);
-// document.getElementById("emp_ok").addEventListener("click", closeEmpModal);
-// document.getElementById("emp_backdrop").addEventListener("click", (e) => {
-//   if (e.target.id === "emp_backdrop") closeEmpModal();
-// });
-
 //頁面載入中獎清單
 document.addEventListener("DOMContentLoaded", async () => {
-  // const empParam = new URL(location.href).searchParams.get("emp");
-
-  // // ✅ 先處理掃碼寫入（不被 loadPrizes/loadWinners 卡住）
-  // if (empParam) {
-  //   handleScan(empParam).catch((e) => {
-  //     console.error("handleScan fatal:", e);
-  //     setScanStatus(false);
-  //     cleanEmpQueryString();
-  //   });
-  // }
-
-  // ✅ UI 後載入（即使失敗也不影響寫入流程）
   loadPrizes().catch((e) => console.error("loadPrizes fatal:", e));
   loadWinners().catch((e) => console.error("loadWinners fatal:", e));
 });
 
 ////獎項按鈕
-let _prizesCache = [];
-let _selectedPrize = null; // 只用來顯示 modal，不用於掃描寫入
-let _scanInFlight = false; // 防止同一次載入重複寫入
+let _prizesCache = []; //暫存所有獎項資料
 async function loadPrizes() {
-  // 1️⃣ 讀取所有獎項
+  //讀獎項
   const { data: prizes, error: prizeError } = await supabaseClient
     .from("prize")
     .select("no, item_name, image_url, qty")
     .order("no", { ascending: true });
-
   if (prizeError) {
     console.error(prizeError);
     alert("讀取獎項失敗：" + prizeError.message);
     return;
   }
-
-  // 2️⃣ 讀取中獎紀錄（只要 prize_no）
+  //讀取中獎紀錄（只要 prize_no）
   const { data: winners, error: winnerError } = await supabaseClient
     .from("winner")
     .select("prize_no");
-
   if (winnerError) {
     console.error(winnerError);
     alert("讀取中獎資料失敗：" + winnerError.message);
     return;
   }
-
-  // 3️⃣ 統計每個獎項已抽數
+  //統計每個獎項已抽數
   const drawnMap = new Map();
   for (const w of winners || []) {
     drawnMap.set(w.prize_no, (drawnMap.get(w.prize_no) || 0) + 1);
   }
-
-  // 4️⃣ 合併資料
+  //合併資料
   _prizesCache = (prizes || []).map((p) => {
     const drawn = drawnMap.get(p.no) || 0;
     return {
@@ -121,14 +62,13 @@ async function loadPrizes() {
       remain: Math.max(0, (p.qty || 0) - drawn),
     };
   });
-
   renderPrizeButtons(_prizesCache);
 }
-
+//prizes預設空陣列
 function renderPrizeButtons(prizes = []) {
   const host = document.getElementById("prize_buttons");
   if (!host) return;
-  host.innerHTML = "";
+  host.innerHTML = ""; //清空
 
   for (const p of prizes) {
     const btn = document.createElement("button");
@@ -136,22 +76,18 @@ function renderPrizeButtons(prizes = []) {
     btn.textContent = `${p.no}獎`;
     btn.title = p.item_name || "";
 
-    // ⭐ 如果抽完
+    //如果抽完
     if (p.remain <= 0) {
       btn.disabled = true;
       btn.classList.add("btn-disabled");
     } else {
       btn.addEventListener("click", async () => {
-        // 1) UI：標示選中
+        // UI：標示選中
         host
           .querySelectorAll("button")
           .forEach((b) => b.classList.remove("btn-active"));
         btn.classList.add("btn-active");
-
-        // 2) 記住本機選擇（用來顯示用，不是安全用）
-        _selectedPrize = p;
-
-        // 3) ✅ 立刻寫入 DB：設定目前獎項
+        // 立刻寫入 DB：設定目前獎項
         const { error } = await supabaseClient.rpc("set_active_prize", {
           p_prize_no: p.no,
         });
@@ -162,15 +98,13 @@ function renderPrizeButtons(prizes = []) {
 
           // 回滾 UI/狀態（避免主持人以為已設定成功）
           btn.classList.remove("btn-active");
-          _selectedPrize = null;
           return;
         }
 
-        // 4) (可選) 繼續顯示獎品資訊
+        //顯示獎品資訊
         openPrizeModal(p);
       });
     }
-
     host.appendChild(btn);
   }
 }
@@ -195,90 +129,32 @@ function openPrizeModal(prize) {
   document.getElementById("prize_backdrop").classList.add("show");
 }
 async function closePrizeModal() {
-  // 1) 先關畫面
   document.getElementById("prize_backdrop").classList.remove("show");
   document.getElementById("prize_body").innerHTML = "";
 
-  // 2) 清空 DB active prize
+  //清DB active prize
   const { error } = await supabaseClient.rpc("set_active_prize", {
     p_prize_no: null,
   });
-
   if (error) {
     console.error("清空目前獎項失敗：", error);
   }
 
-  // 3) 清掉 UI
+  //清UI
   const host = document.getElementById("prize_buttons");
   if (host) {
     host
       .querySelectorAll("button")
       .forEach((b) => b.classList.remove("btn-active"));
   }
-
-  _selectedPrize = null;
 }
 document
   .getElementById("prize_close")
   .addEventListener("click", closePrizeModal);
-document.getElementById("prize_ok").addEventListener("click", closePrizeModal);
+// document.getElementById("prize_ok").addEventListener("click", closePrizeModal);
 document.getElementById("prize_backdrop").addEventListener("click", (e) => {
   if (e.target.id === "prize_backdrop") closePrizeModal();
 });
-
-/* =========================
-   2) 抽獎：掃到 emp 後呼叫 RPC
-   - 規則：一人只能中一次（由 DB unique + draw_winner_once 保證）
-========================= */
-// async function handleScan(empParam) {
-//   // 防止某些掃碼 App 重複開頁造成重送
-//   if (_scanInFlight) return;
-//   _scanInFlight = true;
-
-//   const empNo = parseInt(empParam, 10);
-//   if (!Number.isInteger(empNo)) {
-//     setScanStatus(false);
-//     cleanEmpQueryString();
-//     _scanInFlight = false;
-//     return;
-//   }
-
-//   const { data: result, error: rpcErr } = await supabaseClient.rpc(
-//     "draw_winner_active",
-//     {
-//       p_employee_no: empNo,
-//     },
-//   );
-
-//   if (rpcErr) {
-//     console.error(rpcErr);
-//     setScanStatus(false);
-//     alert("寫入失敗(RPC): " + (rpcErr.message || ""));
-//     cleanEmpQueryString();
-//     _scanInFlight = false;
-//     return;
-//   }
-
-//   const r = Array.isArray(result) ? result[0] : null;
-
-//   if (!r || !r.ok) {
-//     setScanStatus(false);
-//     await refreshUIAfterDraw();
-//     cleanEmpQueryString();
-//     _scanInFlight = false;
-//     return;
-//   }
-
-//   setScanStatus(true);
-//   await refreshUIAfterDraw();
-//   cleanEmpQueryString();
-//   _scanInFlight = false;
-// }
-
-// async function refreshUIAfterDraw() {
-//   // 抽完後刷新：按鈕剩餘名額 & 中獎清單
-//   await Promise.all([loadPrizes(), loadWinners()]);
-// }
 
 ////中獎清單
 async function loadWinners() {
@@ -300,9 +176,7 @@ async function loadWinners() {
     alert("讀取中獎清單失敗：" + error.message);
     return;
   }
-
-  _winnersCache = data || [];
-  renderWinners(_winnersCache);
+  renderWinners(data || []);
 }
 function renderWinners(data = []) {
   const el = document.getElementById("employee_list");
@@ -401,4 +275,14 @@ function renderWinners(data = []) {
     `;
     wrap.appendChild(row);
   }
+}
+
+//防 XSS
+function escapeHtml(str) {
+  return String(str)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 }

@@ -299,7 +299,7 @@ body {
 } */
 
 /* 員工資料 modal(掃QRCode後顯示的中獎人員) */
-#emp_backdrop {
+/* #emp_backdrop {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.45);
@@ -320,7 +320,7 @@ body {
 }
 #emp_close {
   float: right;
-}
+}*/
 #emp_detail {
   margin-top: 12px;
   line-height: 1.9;
@@ -377,6 +377,9 @@ body {
   padding: 0 10px 30px 10px;
   background: transparent;
 }
+#employee_list {
+  overflow-x: visible;
+}
 .list-wrap {
   width: 1200px;
   max-width: 98vw;
@@ -385,6 +388,17 @@ body {
   background: #ffffff;
   border-radius: 14px;
   border: 1px solid #e5e7eb;
+}
+@media (max-width: 768px) {
+  #employee_list {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .list-wrap {
+    min-width: 1200px; /* 手機才會出現橫向捲動 */
+    width: fit-content;
+    max-width: none; /* 取消桌機的 98vw 限制 */
+  }
 }
 .list-title {
   display: flex;

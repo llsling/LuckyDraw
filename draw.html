@@ -22,31 +22,15 @@
     <div id="prize_backdrop">
       <div id="prize_modal">
         <button id="prize_close">X</button>
-        <div id="prize_body"></div>
-        <div
-          style="
-            display: flex;
-            justify-content: flex-end;
-            margin-top: 12px;
-            margin-bottom: 22px;
-          "
-        >
-          <!-- <button id="prize_ok">確定</button> -->
-        </div>
+        <div id="prize_body" style="margin-bottom: 30px"></div>
+        <!-- <div style="display: flex; justify-content: flex-end; margin-top: 12px">
+          <button id="prize_ok" >確定</button>
+        </div> -->
       </div>
     </div>
     <!-- 預設顯示中獎清單 -->
     <div id="employee">
       <div id="employee_list"></div>
-    </div>
-    <!-- 員工中獎modal(掃QRCode後顯示) -->
-    <div id="emp_backdrop">
-      <div id="emp_modal">
-        <button id="emp_close">X</button>
-        <div style="display: flex; justify-content: flex-end; margin-top: 12px">
-          <button id="prize_ok">關閉</button>
-        </div>
-      </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="./draw.js"></script>
