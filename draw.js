@@ -237,7 +237,7 @@ function renderWinners(data = []) {
     <div class="cell">名額</div>
     <div class="cell">已抽額</div>
     <div class="cell">餘額</div>
-    <div class="cell">得獎人姓名</div>
+    <div class="cell">得獎人</div>
   `;
   wrap.appendChild(head);
 

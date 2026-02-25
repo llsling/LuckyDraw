@@ -381,6 +381,8 @@ body {
   overflow-x: visible;
 }
 .list-wrap {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
   width: 1200px;
   max-width: 98vw;
   margin: 0 auto;
