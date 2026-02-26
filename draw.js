@@ -135,11 +135,11 @@ function updateOpenModalRemainFromCache() {
 
   const statusEl = document.getElementById("modal_status");
   if (statusEl) {
-    statusEl.textContent = ""; // ✅ 先清掉舊訊息
-    statusEl.style.color = ""; // ✅ 清掉舊顏色
+    statusEl.textContent = ""; //清空
+    statusEl.style.color = "";
   }
 
-  // 🔴 判斷是否抽完
+  //判斷是否抽完
   if (p.remain === 0) {
     const statusEl = document.getElementById("modal_status");
     if (statusEl) {

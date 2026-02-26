@@ -86,6 +86,13 @@ function renderEmployees(data) {
   title.textContent = `員工清單（${data?.length ?? 0}）`;
   wrap.appendChild(title);
 
+  const emp_excel = document.createElement("button");
+  emp_excel.textContent = `員工清單下載(Excel)`;
+  emp_excel.style.marginBottom = "15px";
+  emp_excel.className = "excel-btn";
+  emp_excel.onclick = () => exportToDetailedExcel(_employeesCache);
+  wrap.appendChild(emp_excel);
+
   if (!data || data.length === 0) {
     const empty = document.createElement("div");
     empty.textContent = "目前沒有員工資料";
@@ -101,7 +108,6 @@ function renderEmployees(data) {
     <div class="cell">序號</div>
     <div class="cell">姓名</div>
     <div class="cell">部門名稱</div>
-    <div class="cell">QRCode</div>
   `;
   wrap.appendChild(head);
   el.appendChild(wrap);
@@ -476,42 +482,114 @@ function renderWinners(data = []) {
   }
 }
 
-////員工資料modal(掃QRCode後顯示的中獎人員)
-// async function openEmployeeById(empId) {
-//   const id = parseInt(empId, 10);
-//   if (!Number.isInteger(id)) return;
-//   const { data, error } = await supabaseClient
-//     .from("employee")
-//     .select("*")
-//     .eq("id", id)
-//     .single();
-//   if (error || !data) {
-//     console.error("DB select error:", error);
-//     alert("員工資料讀取失敗");
-//     return;
-//   }
-//   openEmpModal(`
-//     <div>🎉 恭喜中獎！ <b>序號：</b>${data.id}</div>
-//     <div><b>姓名：</b>${escapeHtml(data.emp_name ?? "")}</div>
-//     <div><b>手機：</b>${escapeHtml(data.emp_phone ?? "")}</div>
-//   `);
-// }
+//excel下載
+async function exportToDetailedExcel(data) {
+  if (!data || data.length === 0) return alert("目前沒有員工資料可供下載");
 
-// ////員工資料modal開
-// function openEmpModal(html) {
-//   document.getElementById("emp_detail").innerHTML = html;
-//   document.getElementById("emp_backdrop").classList.add("show");
-// }
-// //員工資料modal關
-// function closeEmpModal() {
-//   document.getElementById("emp_backdrop").classList.remove("show");
-//   document.getElementById("emp_detail").innerHTML = "";
-//   const cleanUrl = location.origin + location.pathname;
-//   history.replaceState({}, "", cleanUrl);
-// }
-// // 關閉事件
-// document.getElementById("emp_close").addEventListener("click", closeEmpModal);
-// document.getElementById("emp_ok").addEventListener("click", closeEmpModal);
-// document.getElementById("emp_backdrop").addEventListener("click", (e) => {
-//   if (e.target.id === "emp_backdrop") closeEmpModal();
-// });
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet("抽獎券", {
+    pageSetup: {
+      paperSize: 9, // A4 紙張
+      orientation: "portrait",
+      fitToPage: false, // 保持實際尺寸 (14.5x7cm)
+      margins: {
+        left: 0.5,
+        right: 0.5,
+        top: 0.5,
+        bottom: 0.5,
+        header: 0,
+        footer: 0,
+      },
+    },
+  });
+
+  // 1. 基本佈局設定
+  worksheet.getColumn("A").width = 15; // no 欄
+  worksheet.getColumn("B").width = 25; // dep_name 欄
+  worksheet.getColumn("C").width = 2.5; // 間距欄 (對應圖中細欄)
+  worksheet.getColumn("D").width = 30; // QRCode 欄
+
+  let startRow = 1;
+  let count = 0; // 用來計數，每 4 筆換一頁
+
+  for (const emp of data) {
+    // 取得畫面上產生的 QRCode (Canvas)
+    const qrContainer = document.getElementById(`qr_${emp.no}`);
+    const qrCanvas = qrContainer ? qrContainer.querySelector("canvas") : null;
+
+    if (!qrCanvas) continue;
+    const base64Image = qrCanvas.toDataURL("image/png");
+
+    // 設定行高
+    worksheet.getRow(startRow).height = 55; // 第一行 (no, dep)
+    worksheet.getRow(startRow + 1).height = 70; // 姓名高度
+    worksheet.getRow(startRow + 2).height = 70; // 姓名高度
+
+    // --- A. 填入文字資料 ---
+
+    // 序號 (no) - 置中
+    const noCell = worksheet.getCell(`A${startRow}`);
+    noCell.value = emp.no;
+    noCell.alignment = { vertical: "middle", horizontal: "center" };
+    noCell.font = { size: 18 };
+
+    // 部門 (dep_name) - 靠左
+    const depCell = worksheet.getCell(`B${startRow}`);
+    depCell.value = emp.dep_name;
+    depCell.alignment = { vertical: "middle", horizontal: "left", indent: 1 };
+    depCell.font = { size: 18 };
+
+    // 第二、三行：合併顯示 emp_name (對應圖片中較大的姓名區域)
+    const nameRowStart = startRow + 1;
+    const nameRowEnd = startRow + 2;
+    worksheet.mergeCells(`A${nameRowStart}:B${nameRowEnd}`);
+    const nameCell = worksheet.getCell(`A${nameRowStart}`);
+    nameCell.value = emp.emp_name;
+    nameCell.alignment = { vertical: "middle", horizontal: "center" };
+    nameCell.font = { size: 24, bold: true };
+
+    // --- B. 插入 QRCode 圖片 ---
+
+    // 合併右側 D 欄區域放置 QRCode
+    worksheet.mergeCells(`D${startRow}:D${nameRowEnd}`);
+    const imageId = workbook.addImage({
+      base64: base64Image,
+      extension: "png",
+    });
+
+    worksheet.addImage(imageId, {
+      tl: { col: 3.2, row: startRow - 0.1 },
+      ext: { width: 130, height: 130 },
+      editAs: "oneCell",
+    });
+
+    // --- C. 分隔線 ---
+    // 在每個員工區塊下方加一條粗黑線
+    const dividerRow = startRow + 3;
+    worksheet.getRow(dividerRow).height = 1;
+    worksheet.mergeCells(`A${dividerRow}:D${dividerRow}`);
+    worksheet.getCell(`A${dividerRow}`).fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "FF000000" }, // 黑色分隔
+    };
+    count++;
+    // 重點：每 4 筆資料加入分頁符號
+    if (count % 4 === 0 && count !== data.length) {
+      // 在 dividerRow 這一行之後強制分頁
+      worksheet.getRow(dividerRow).addPageBreak();
+    }
+    // 移動到下一個區塊的起始行 (間隔 5 行)
+    startRow += 5;
+  }
+
+  // 匯出檔案
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = `2026馬年抽獎券_${new Date().getTime()}.xlsx`;
+  link.click();
+}

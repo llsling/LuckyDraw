@@ -188,44 +188,6 @@ body {
   padding: 16px;
   box-shadow: none;
 }
-.modal-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 12px;
-}
-.modal-title {
-  font-size: 16px;
-  font-weight: 800;
-  letter-spacing: 0.2px;
-}
-.btn-icon {
-  appearance: none;
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  background: #ffffff;
-  color: #111827;
-  border-radius: 10px;
-  width: 38px;
-  height: 38px;
-  cursor: pointer;
-  transition: filter 120ms ease;
-}
-.btn-icon:hover {
-  filter: brightness(0.97);
-}
-.modal-body {
-  display: grid;
-  gap: 12px;
-  margin-top: 6px;
-}
-.field label {
-  display: block;
-  font-size: 12px;
-  font-weight: 700;
-  color: rgba(17, 24, 39, 0.75);
-  margin-bottom: 6px;
-}
 #add_employee_div input {
   width: 100%;
   box-sizing: border-box;
@@ -242,90 +204,11 @@ body {
   border-color: rgba(225, 29, 72, 0.55);
   background: rgba(225, 29, 72, 0.03);
 }
-.modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 14px;
-}
-.btn-primary {
-  border: none;
-  background: linear-gradient(135deg, #ef4444, #dc2626);
-  color: #fff;
-  padding: 10px 14px;
-  border-radius: 12px;
-  font-weight: 800;
-  cursor: pointer;
-  transition:
-    filter 120ms ease,
-    transform 120ms ease;
-}
-.btn-primary:hover {
-  filter: brightness(1.06);
-}
-.btn-primary:active {
-  transform: scale(0.98);
-}
-.btn-ghost {
-  border: 1px solid rgba(0, 0, 0, 0.14);
-  background: #ffffff;
-  color: #111827;
-  padding: 10px 14px;
-  border-radius: 12px;
-  font-weight: 800;
-  cursor: pointer;
-  transition:
-    filter 120ms ease,
-    transform 120ms ease;
-}
-.btn-ghost:hover {
-  filter: brightness(0.97);
-}
-.btn-ghost:active {
-  transform: scale(0.98);
-}
-#modal_backdrop.show #add_employee_div {
-  animation: modalPop 140ms ease-out;
-}
-@keyframes modalPop {
-  from {
-    opacity: 0;
-    transform: translateY(6px) scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-} */
-
-/* 員工資料 modal(掃QRCode後顯示的中獎人員) */
-/* #emp_backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.45);
-  display: none;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-}
-#emp_backdrop.show {
-  display: flex;
-}
-#emp_modal {
-  width: min(420px, 92vw);
-  background: #fff;
-  border-radius: 14px;
-  padding: 16px;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
-}
-#emp_close {
-  float: right;
-}*/
 #emp_detail {
   margin-top: 12px;
   line-height: 1.9;
 }
-
+  
 /* ===== button_list ===== */
 #button_list {
   margin-top: 24px;
@@ -628,4 +511,17 @@ body {
   transform: none;
   box-shadow: none;
   opacity: 0.7;
+}
+
+.excel-btn {
+  border: none;
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  transition:
+    filter 120ms ease,
+    transform 120ms ease;
 }
