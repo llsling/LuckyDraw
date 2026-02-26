@@ -148,14 +148,14 @@ function updateOpenModalRemainFromCache() {
     }
   }
   //抽完自動關閉
-  // if (!_modalClosingScheduled) {
-  //   _modalClosingScheduled = true;
+  if (!_modalClosingScheduled) {
+    _modalClosingScheduled = true;
 
-  //   setTimeout(() => {
-  //     closePrizeModal();
-  //     _modalClosingScheduled = false;
-  //   }, 2000);
-  // }
+    setTimeout(() => {
+      closePrizeModal();
+      _modalClosingScheduled = false;
+    }, 2000);
+  }
 }
 
 //獎項資訊 modal
