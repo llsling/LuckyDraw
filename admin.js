@@ -495,7 +495,7 @@ async function exportToDetailedExcel(data) {
       margins: {
         left: 0.5,
         right: 0.5,
-        top: 0.5,
+        top: 0,
         bottom: 0.5,
         header: 0,
         footer: 0,
@@ -521,9 +521,9 @@ async function exportToDetailedExcel(data) {
     const base64Image = qrCanvas.toDataURL("image/png");
 
     // 設定行高
-    worksheet.getRow(startRow).height = 55; // 第一行 (no, dep)
-    worksheet.getRow(startRow + 1).height = 70; // 姓名高度
-    worksheet.getRow(startRow + 2).height = 70; // 姓名高度
+    worksheet.getRow(startRow).height = 60.5; // 第一行 (no, dep)
+    worksheet.getRow(startRow + 1).height = 69; // 姓名高度
+    worksheet.getRow(startRow + 2).height = 69; // 姓名高度
 
     // --- A. 填入文字資料 ---
 
@@ -566,7 +566,7 @@ async function exportToDetailedExcel(data) {
     // --- C. 分隔線 ---
     // 在每個員工區塊下方加一條粗黑線
     const dividerRow = startRow + 3;
-    worksheet.getRow(dividerRow).height = 1;
+    worksheet.getRow(dividerRow).height = 0.75;
     worksheet.mergeCells(`A${dividerRow}:D${dividerRow}`);
     worksheet.getCell(`A${dividerRow}`).fill = {
       type: "pattern",
