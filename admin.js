@@ -493,10 +493,10 @@ async function exportToDetailedExcel(data) {
       orientation: "portrait",
       fitToPage: false, // 保持實際尺寸 (14.5x7cm)
       margins: {
-        left: 0.5,
-        right: 0.5,
+        left: 0,
+        right: 0,
         top: 0,
-        bottom: 0.5,
+        bottom: 0,
         header: 0,
         footer: 0,
       },
@@ -504,9 +504,9 @@ async function exportToDetailedExcel(data) {
   });
 
   // 1. 基本佈局設定
-  worksheet.getColumn("A").width = 15; // no 欄
-  worksheet.getColumn("B").width = 25; // dep_name 欄
-  worksheet.getColumn("C").width = 2.5; // 間距欄 (對應圖中細欄)
+  worksheet.getColumn("A").width = 12; // no 欄
+  worksheet.getColumn("B").width = 25.5; // dep_name 欄
+  worksheet.getColumn("C").width = 5; // 間距欄 (對應圖中細欄)
   worksheet.getColumn("D").width = 30; // QRCode 欄
 
   let startRow = 1;
