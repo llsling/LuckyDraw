@@ -573,6 +573,12 @@ async function exportToDetailedExcel(data) {
       pattern: "solid",
       fgColor: { argb: "FF000000" }, // 黑色分隔
     };
+    //右側加細線
+    for (let i = 0; i <= 4; i++) {
+      worksheet.getCell(`D${startRow + i}`).border = {
+        right: { style: "thin", color: { argb: "FF000000" } },
+      };
+    }
     count++;
     // 重點：每 4 筆資料加入分頁符號
     if (count % 4 === 0 && count !== data.length) {
