@@ -76,9 +76,7 @@ async function handleScan(empParam) {
       .single();
 
     if (!empErr && emp) {
-      winnerText = [emp.dep_name, emp.emp_id, emp.emp_name]
-        .filter(Boolean)
-        .join("-");
+      winnerText = [emp.dep_name, emp.emp_name].filter(Boolean).join("-");
     }
 
     const msg =
@@ -155,11 +153,7 @@ function renderWinners(data = []) {
       });
     }
 
-    const winnerName = [
-      w.employee?.dep_name ?? "",
-      w.employee?.emp_id ?? "",
-      w.employee?.emp_name ?? "",
-    ]
+    const winnerName = [w.employee?.dep_name ?? "", w.employee?.emp_name ?? ""]
       .filter(Boolean)
       .join("-");
 
@@ -172,14 +166,12 @@ function renderWinners(data = []) {
   //表頭
   const head = document.createElement("div");
   head.className = "list-head";
-  head.style.gridTemplateColumns = "80px 2fr 100px 70px 70px 70px 6fr";
+  head.style.gridTemplateColumns = "80px 2fr 100px 70px 6fr";
   head.innerHTML = `
     <div class="cell">no</div>
     <div class="cell">品項</div>
     <div class="cell">圖片</div>
     <div class="cell">名額</div>
-    <div class="cell">已抽額</div>
-    <div class="cell">餘額</div>
     <div class="cell">得獎人</div>
   `;
   wrap.appendChild(head);
@@ -206,14 +198,12 @@ function renderWinners(data = []) {
 
     const row = document.createElement("div");
     row.className = "list-row";
-    row.style.gridTemplateColumns = "80px 2fr 100px 70px 70px 70px 6fr";
+    row.style.gridTemplateColumns = "80px 2fr 100px 70px 6fr";
     row.innerHTML = `
       <div class="cell">${g.prize?.no ?? g.prize_no ?? ""}獎</div>
       <div class="cell">${escapeHtml(g.prize?.item_name ?? "")}</div>
       <div class="cell">${imgHtml}</div>
       <div class="cell">${qty}</div>
-      <div class="cell">${drawn}</div>
-      <div class="cell">${remain}</div>
       <div class="cell">${winnerNamesText}</div>
     `;
     wrap.appendChild(row);

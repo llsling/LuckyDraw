@@ -293,11 +293,7 @@ function renderWinners(data = []) {
       });
     }
 
-    const winnerName = [
-      w.employee?.dep_name ?? "",
-      w.employee?.emp_id ?? "",
-      w.employee?.emp_name ?? "",
-    ]
+    const winnerName = [w.employee?.dep_name ?? "", w.employee?.emp_name ?? ""]
       .filter(Boolean)
       .join("-");
 

@@ -417,11 +417,7 @@ function renderWinners(data = []) {
       });
     }
 
-    const winnerName = [
-      w.employee?.dep_name ?? "",
-      w.employee?.emp_id ?? "",
-      w.employee?.emp_name ?? "",
-    ]
+    const winnerName = [w.employee?.dep_name ?? "", w.employee?.emp_name ?? ""]
       .filter(Boolean)
       .join("-");
 
@@ -509,7 +505,9 @@ async function exportToDetailedExcel(data) {
   worksheet.getColumn("C").width = 5; // 間距欄 (對應圖中細欄)
   worksheet.getColumn("D").width = 30; // QRCode 欄
 
-  let startRow = 1;
+  worksheet.getRow(1).height = 18.75;
+
+  let startRow = 2;
   let count = 0; // 用來計數，每 4 筆換一頁
 
   for (const emp of data) {
