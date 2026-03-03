@@ -430,7 +430,7 @@ function renderWinners(data = []) {
   //表頭
   const head = document.createElement("div");
   head.className = "list-head";
-  head.style.gridTemplateColumns = "80px 2fr 100px 70px 70px 70px 6fr";
+  head.style.gridTemplateColumns = "80px 1fr 100px 70px 70px 70px 6fr";
   head.innerHTML = `
     <div class="cell">no</div>
     <div class="cell">品項</div>
@@ -464,7 +464,7 @@ function renderWinners(data = []) {
 
     const row = document.createElement("div");
     row.className = "list-row";
-    row.style.gridTemplateColumns = "80px 2fr 100px 70px 70px 70px 6fr";
+    row.style.gridTemplateColumns = "80px 1fr 100px 70px 70px 70px 6fr";
     row.innerHTML = `
       <div class="cell">${g.prize?.no ?? g.prize_no ?? ""}獎</div>
       <div class="cell">${escapeHtml(g.prize?.item_name ?? "")}</div>
