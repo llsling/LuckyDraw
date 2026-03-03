@@ -488,6 +488,7 @@ async function exportToDetailedExcel(data) {
       paperSize: 9, // A4 紙張
       orientation: "portrait",
       fitToPage: false, // 保持實際尺寸 (14.5x7cm)
+      printPrecision: 'high',
       margins: {
         left: 0,
         right: 0,
@@ -500,12 +501,12 @@ async function exportToDetailedExcel(data) {
   });
 
   // 1. 基本佈局設定
-  worksheet.getColumn("A").width = 12; // no 欄
-  worksheet.getColumn("B").width = 25.5; // dep_name 欄
-  worksheet.getColumn("C").width = 5; // 間距欄 (對應圖中細欄)
-  worksheet.getColumn("D").width = 30; // QRCode 欄
+  worksheet.getColumn("A").width = 13.5; // no 欄
+  worksheet.getColumn("B").width = 29.5; // dep_name 欄
+  worksheet.getColumn("C").width = 5.5; // 間距欄 (對應圖中細欄)
+  worksheet.getColumn("D").width = 29.5; // QRCode 欄
 
-  worksheet.getRow(1).height = 18.75;
+  worksheet.getRow(1).height = 20.75;
 
   let startRow = 2;
   let count = 0; // 用來計數，每 4 筆換一頁
@@ -519,9 +520,9 @@ async function exportToDetailedExcel(data) {
     const base64Image = qrCanvas.toDataURL("image/png");
 
     // 設定行高
-    worksheet.getRow(startRow).height = 60.5; // 第一行 (no, dep)
-    worksheet.getRow(startRow + 1).height = 69; // 姓名高度
-    worksheet.getRow(startRow + 2).height = 69; // 姓名高度
+    worksheet.getRow(startRow).height = 81.25; // 第一行 (no, dep)
+    worksheet.getRow(startRow + 1).height = 82.5; // 姓名高度
+    worksheet.getRow(startRow + 2).height = 82.5; // 姓名高度
 
     // --- A. 填入文字資料 ---
 
@@ -556,8 +557,8 @@ async function exportToDetailedExcel(data) {
     });
 
     worksheet.addImage(imageId, {
-      tl: { col: 3.2, row: startRow - 0.1 },
-      ext: { width: 130, height: 130 },
+      tl: { col: 3.2, row: startRow - 0.3 },
+      ext: { width: 110, height: 110 },
       editAs: "oneCell",
     });
 
