@@ -488,7 +488,7 @@ async function exportToDetailedExcel(data) {
       paperSize: 9, // A4 紙張
       orientation: "portrait",
       fitToPage: false, // 保持實際尺寸 (14.5x7cm)
-      printPrecision: 'high',
+      printPrecision: "high",
       margins: {
         left: 0,
         right: 0,
@@ -506,7 +506,7 @@ async function exportToDetailedExcel(data) {
   worksheet.getColumn("C").width = 5.5; // 間距欄 (對應圖中細欄)
   worksheet.getColumn("D").width = 29.5; // QRCode 欄
 
-  worksheet.getRow(1).height = 20.75;
+  worksheet.getRow(1).height = 20;
 
   let startRow = 2;
   let count = 0; // 用來計數，每 4 筆換一頁
@@ -520,31 +520,30 @@ async function exportToDetailedExcel(data) {
     const base64Image = qrCanvas.toDataURL("image/png");
 
     // 設定行高
-    worksheet.getRow(startRow).height = 81.25; // 第一行 (no, dep)
-    worksheet.getRow(startRow + 1).height = 82.5; // 姓名高度
-    worksheet.getRow(startRow + 2).height = 82.5; // 姓名高度
+    worksheet.getRow(startRow).height = 92; // 第一行 (no, dep)
+    worksheet.getRow(startRow + 1).height = 93; // 姓名高度
+    worksheet.getRow(startRow + 2).height = 93; // 姓名高度
 
     // --- A. 填入文字資料 ---
 
     // 序號 (no) - 置中
     const noCell = worksheet.getCell(`A${startRow}`);
     noCell.value = emp.no;
-    noCell.alignment = { vertical: "middle", horizontal: "center" };
+    noCell.alignment = { vertical: "bottom", horizontal: "center" };
     noCell.font = { size: 18 };
 
     // 部門 (dep_name) - 靠左
     const depCell = worksheet.getCell(`B${startRow}`);
     depCell.value = emp.dep_name;
-    depCell.alignment = { vertical: "middle", horizontal: "left", indent: 1 };
+    depCell.alignment = { vertical: "bottom", horizontal: "left", indent: 1 };
     depCell.font = { size: 18 };
 
-    // 第二、三行：合併顯示 emp_name (對應圖片中較大的姓名區域)
+    // emp_name
     const nameRowStart = startRow + 1;
     const nameRowEnd = startRow + 2;
-    worksheet.mergeCells(`A${nameRowStart}:B${nameRowEnd}`);
-    const nameCell = worksheet.getCell(`A${nameRowStart}`);
+    const nameCell = worksheet.getCell(`B${nameRowStart}`);
     nameCell.value = emp.emp_name;
-    nameCell.alignment = { vertical: "middle", horizontal: "center" };
+    nameCell.alignment = { vertical: "middle", horizontal: "left" };
     nameCell.font = { size: 24, bold: true };
 
     // --- B. 插入 QRCode 圖片 ---
@@ -557,15 +556,15 @@ async function exportToDetailedExcel(data) {
     });
 
     worksheet.addImage(imageId, {
-      tl: { col: 3.2, row: startRow - 0.3 },
-      ext: { width: 110, height: 110 },
+      tl: { col: 3.2, row: startRow - 0.5 },
+      ext: { width: 130, height: 130 },
       editAs: "oneCell",
     });
 
     // --- C. 分隔線 ---
     // 在每個員工區塊下方加一條粗黑線
     const dividerRow = startRow + 3;
-    worksheet.getRow(dividerRow).height = 0.75;
+    worksheet.getRow(dividerRow).height = 1.5;
     worksheet.mergeCells(`A${dividerRow}:D${dividerRow}`);
     worksheet.getCell(`A${dividerRow}`).fill = {
       type: "pattern",
