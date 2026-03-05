@@ -97,118 +97,118 @@ async function handleScan(empParam) {
 }
 
 ////中獎清單
-async function loadWinners() {
-  const { data, error } = await supabaseClient
-    .from("winner")
-    .select(
-      `
-      id,
-      created_at,
-      prize_no,
-      employee:employee_no ( no, emp_id,emp_name,dep_name,job_position ),
-      prize:prize_no ( no, item_name,qty,image_url )
-    `,
-    )
-    .order("prize_no", { ascending: true });
+// async function loadWinners() {
+//   const { data, error } = await supabaseClient
+//     .from("winner")
+//     .select(
+//       `
+//       id,
+//       created_at,
+//       prize_no,
+//       employee:employee_no ( no, emp_id,emp_name,dep_name,job_position ),
+//       prize:prize_no ( no, item_name,qty,image_url )
+//     `,
+//     )
+//     .order("prize_no", { ascending: true });
 
-  if (error) {
-    console.error(error);
-    alert("讀取中獎清單失敗：" + error.message);
-    return;
-  }
+//   if (error) {
+//     console.error(error);
+//     alert("讀取中獎清單失敗：" + error.message);
+//     return;
+//   }
 
-  renderWinners(data || []);
-}
-function renderWinners(data = []) {
-  const el = document.getElementById("employee_list");
-  el.innerHTML = "";
+//   renderWinners(data || []);
+// }
+// function renderWinners(data = []) {
+//   const el = document.getElementById("employee_list");
+//   el.innerHTML = "";
 
-  const wrap = document.createElement("div");
-  wrap.className = "list-wrap";
-  el.appendChild(wrap);
+//   const wrap = document.createElement("div");
+//   wrap.className = "list-wrap";
+//   el.appendChild(wrap);
 
-  const title = document.createElement("div");
-  title.className = "list-title";
-  title.textContent = `中獎清單`;
-  wrap.appendChild(title);
+//   const title = document.createElement("div");
+//   title.className = "list-title";
+//   title.textContent = `中獎清單`;
+//   wrap.appendChild(title);
 
-  if (!data || data.length === 0) {
-    const empty = document.createElement("div");
-    empty.textContent = "目前尚未有中獎紀錄";
-    wrap.appendChild(empty);
-    return;
-  }
+//   if (!data || data.length === 0) {
+//     const empty = document.createElement("div");
+//     empty.textContent = "目前尚未有中獎紀錄";
+//     wrap.appendChild(empty);
+//     return;
+//   }
 
-  //依獎項分組：key = prize_no
-  const groupMap = new Map();
-  for (const w of data) {
-    const key = String(w.prize_no ?? w.prize?.no ?? "");
-    if (!key) continue;
+//   //依獎項分組：key = prize_no
+//   const groupMap = new Map();
+//   for (const w of data) {
+//     const key = String(w.prize_no ?? w.prize?.no ?? "");
+//     if (!key) continue;
 
-    if (!groupMap.has(key)) {
-      groupMap.set(key, {
-        prize_no: w.prize_no ?? w.prize?.no,
-        prize: w.prize ?? null,
-        winners: [],
-      });
-    }
+//     if (!groupMap.has(key)) {
+//       groupMap.set(key, {
+//         prize_no: w.prize_no ?? w.prize?.no,
+//         prize: w.prize ?? null,
+//         winners: [],
+//       });
+//     }
 
-    const winnerName = [w.employee?.dep_name ?? "", w.employee?.emp_name ?? ""]
-      .filter(Boolean)
-      .join("-");
+//     const winnerName = [w.employee?.dep_name ?? "", w.employee?.emp_name ?? ""]
+//       .filter(Boolean)
+//       .join("-");
 
-    if (winnerName) groupMap.get(key).winners.push(winnerName);
-  }
+//     if (winnerName) groupMap.get(key).winners.push(winnerName);
+//   }
 
-  //轉陣列（維持 Map 插入順序＝依 DB 回傳順序）
-  const grouped = Array.from(groupMap.values());
+//   //轉陣列（維持 Map 插入順序＝依 DB 回傳順序）
+//   const grouped = Array.from(groupMap.values());
 
-  //表頭
-  const head = document.createElement("div");
-  head.className = "list-head";
-  head.style.gridTemplateColumns = "80px 1fr 100px 70px 6fr";
-  head.innerHTML = `
-    <div class="cell">no</div>
-    <div class="cell">品項</div>
-    <div class="cell">圖片</div>
-    <div class="cell">名額</div>
-    <div class="cell">得獎人</div>
-  `;
-  wrap.appendChild(head);
+//   //表頭
+//   const head = document.createElement("div");
+//   head.className = "list-head";
+//   head.style.gridTemplateColumns = "80px 1fr 100px 70px 6fr";
+//   head.innerHTML = `
+//     <div class="cell">no</div>
+//     <div class="cell">品項</div>
+//     <div class="cell">圖片</div>
+//     <div class="cell">名額</div>
+//     <div class="cell">得獎人</div>
+//   `;
+//   wrap.appendChild(head);
 
-  //每個獎只畫一列，得獎人姓名用逗號累加
-  for (const g of grouped) {
-    const qty = Number(g.prize?.qty ?? 0) || 0;
+//   //每個獎只畫一列，得獎人姓名用逗號累加
+//   for (const g of grouped) {
+//     const qty = Number(g.prize?.qty ?? 0) || 0;
 
-    // 已抽額 = 該獎 winners 數
-    const drawn = g.winners.length;
+//     // 已抽額 = 該獎 winners 數
+//     const drawn = g.winners.length;
 
-    // 餘額
-    const remain = Math.max(0, qty - drawn);
+//     // 餘額
+//     const remain = Math.max(0, qty - drawn);
 
-    // 圖片
-    const imgHtml = g.prize?.image_url
-      ? `<img class="thumb" src="${escapeHtml(g.prize.image_url)}" alt="${escapeHtml(g.prize?.item_name ?? "prize")}" loading="lazy">`
-      : "";
+//     // 圖片
+//     const imgHtml = g.prize?.image_url
+//       ? `<img class="thumb" src="${escapeHtml(g.prize.image_url)}" alt="${escapeHtml(g.prize?.item_name ?? "prize")}" loading="lazy">`
+//       : "";
 
-    // 得獎人姓名：用 ", " 串起來（並 escape）
-    const winnerNamesText = g.winners
-      .map((name) => escapeHtml(name))
-      .join(", ");
+//     // 得獎人姓名：用 ", " 串起來（並 escape）
+//     const winnerNamesText = g.winners
+//       .map((name) => escapeHtml(name))
+//       .join(", ");
 
-    const row = document.createElement("div");
-    row.className = "list-row";
-    row.style.gridTemplateColumns = "80px 1fr 100px 70px 6fr";
-    row.innerHTML = `
-      <div class="cell">${g.prize?.no ?? g.prize_no ?? ""}獎</div>
-      <div class="cell">${escapeHtml(g.prize?.item_name ?? "")}</div>
-      <div class="cell">${imgHtml}</div>
-      <div class="cell">${qty}</div>
-      <div class="cell">${winnerNamesText}</div>
-    `;
-    wrap.appendChild(row);
-  }
-}
+//     const row = document.createElement("div");
+//     row.className = "list-row";
+//     row.style.gridTemplateColumns = "80px 1fr 100px 70px 6fr";
+//     row.innerHTML = `
+//       <div class="cell">${g.prize?.no ?? g.prize_no ?? ""}獎</div>
+//       <div class="cell">${escapeHtml(g.prize?.item_name ?? "")}</div>
+//       <div class="cell">${imgHtml}</div>
+//       <div class="cell">${qty}</div>
+//       <div class="cell">${winnerNamesText}</div>
+//     `;
+//     wrap.appendChild(row);
+//   }
+// }
 
 // 簡單防 XSS（避免名字含 <script> 之類）
 function escapeHtml(str) {
@@ -224,3 +224,102 @@ function escapeHtml(str) {
 // document.getElementById("btn_admin").addEventListener("click", () => {
 //   location.href = "./admin.html";
 // });
+
+async function loadWinners() {
+  // 1. 同時讀取所有獎項 與 所有中獎紀錄
+  const [prizeRes, winnerRes] = await Promise.all([
+    supabaseClient.from("prize").select("*").order("no", { ascending: true }),
+    supabaseClient
+      .from("winner")
+      .select(
+        `
+      prize_no,
+      employee:employee_no ( dep_name, emp_name )
+    `,
+      )
+      .order("created_at", { ascending: true }),
+  ]);
+
+  if (prizeRes.error || winnerRes.error) {
+    console.error("讀取失敗:", prizeRes.error || winnerRes.error);
+    return;
+  }
+
+  const prizes = prizeRes.data || [];
+  const winners = winnerRes.data || [];
+
+  // 2. 建立一個 Map 來存放每個獎項的中獎人陣列
+  const winnerMap = new Map();
+  for (const w of winners) {
+    const name = [w.employee?.dep_name, w.employee?.emp_name]
+      .filter(Boolean)
+      .join("-");
+    if (!winnerMap.has(w.prize_no)) {
+      winnerMap.set(w.prize_no, []);
+    }
+    winnerMap.get(w.prize_no).push(name);
+  }
+
+  // 3. 將中獎人資料合併到獎項資料中
+  const finalData = prizes.map((p) => ({
+    prize_no: p.no,
+    item_name: p.item_name,
+    image_url: p.image_url,
+    qty: p.qty,
+    winners: winnerMap.get(p.no) || [], // 如果沒人中獎，就是空陣列
+  }));
+
+  renderWinners(finalData);
+}
+
+function renderWinners(groupedData = []) {
+  const el = document.getElementById("employee_list");
+  el.innerHTML = "";
+
+  const wrap = document.createElement("div");
+  wrap.className = "list-wrap";
+  el.appendChild(wrap);
+
+  const title = document.createElement("div");
+  title.className = "list-title";
+  title.textContent = `中獎清單`;
+  wrap.appendChild(title);
+
+  // 表頭
+  const head = document.createElement("div");
+  head.className = "list-head";
+  head.style.gridTemplateColumns = "80px 1fr 100px 70px 6fr";
+  head.innerHTML = `
+    <div class="cell">no</div>
+    <div class="cell">品項</div>
+    <div class="cell">圖片</div>
+    <div class="cell">名額</div>
+    <div class="cell">得獎人</div>
+  `;
+  wrap.appendChild(head);
+
+  // 遍歷所有獎項（即使沒人中獎也會畫出一列）
+  for (const g of groupedData) {
+    const imgHtml = g.image_url
+      ? `<img class="thumb" src="${escapeHtml(g.image_url)}" alt="prize" loading="lazy">`
+      : "";
+
+    // 處理得獎人文字，若無則顯示「待抽獎」
+    const winnerNamesText =
+      g.winners.length > 0
+        ? g.winners.map((name) => escapeHtml(name)).join(", ")
+        : `<span style="color: #9ca3af; font-weight: normal;">(尚未抽出)</span>`;
+
+    const row = document.createElement("div");
+    row.className = "list-row";
+    row.style.gridTemplateColumns = "80px 1fr 100px 70px 6fr";
+    row.innerHTML = `
+      <div class="cell">${g.prize_no}獎</div>
+      <div class="cell">${escapeHtml(g.item_name)}</div>
+      <div class="cell">${imgHtml}</div>
+      <div class="cell">${g.qty}</div>
+      <div class="cell">${winnerNamesText}</div>
+    `;
+    wrap.appendChild(row);
+  }
+}
