@@ -78,7 +78,11 @@ function renderPrizeButtons(prizes = []) {
   for (const p of prizes) {
     const btn = document.createElement("button");
     btn.type = "button";
-    btn.textContent = `${p.no}獎`;
+    let displayNo = p.no;
+    if (displayNo == 15) {
+      displayNo = "普";
+    }
+    btn.textContent = `${displayNo}獎`;
     btn.title = p.item_name || "";
 
     //如果抽完
@@ -162,11 +166,15 @@ function updateOpenModalRemainFromCache() {
 function openPrizeModal(prize) {
   _activeModalPrizeNo = prize?.no ?? null;
 
-  const no = prize?.no ?? "";
+  let no = prize?.no ?? "";
   const name = prize?.item_name ?? "";
   const img = prize?.image_url
     ? `<img src="${escapeHtml(prize.image_url)}" alt="${escapeHtml(name || "prize")}" loading="lazy">`
     : `<div style="opacity:.7;">（無圖片）</div>`;
+
+    if(no==15){
+      no="普";
+    }
 
   document.getElementById("prize_body").innerHTML = `
       <div class="prize-title">
@@ -368,15 +376,10 @@ async function loadWinners() {
   // 1. 同時讀取所有獎項 與 所有中獎紀錄
   const [prizeRes, winnerRes] = await Promise.all([
     supabaseClient.from("prize").select("*").order("no", { ascending: true }),
-    supabaseClient
-      .from("winner")
-      .select(
-        `
+    supabaseClient.from("winner").select(`
       prize_no,
       employee:employee_no ( dep_name, emp_name )
-    `,
-      )
-      .order("created_at", { ascending: true }),
+    `).order("created_at", { ascending: true })
   ]);
 
   if (prizeRes.error || winnerRes.error) {
@@ -390,9 +393,7 @@ async function loadWinners() {
   // 2. 建立一個 Map 來存放每個獎項的中獎人陣列
   const winnerMap = new Map();
   for (const w of winners) {
-    const name = [w.employee?.dep_name, w.employee?.emp_name]
-      .filter(Boolean)
-      .join("-");
+    const name = [w.employee?.dep_name, w.employee?.emp_name].filter(Boolean).join("-");
     if (!winnerMap.has(w.prize_no)) {
       winnerMap.set(w.prize_no, []);
     }
@@ -400,12 +401,12 @@ async function loadWinners() {
   }
 
   // 3. 將中獎人資料合併到獎項資料中
-  const finalData = prizes.map((p) => ({
+  const finalData = prizes.map(p => ({
     prize_no: p.no,
     item_name: p.item_name,
     image_url: p.image_url,
     qty: p.qty,
-    winners: winnerMap.get(p.no) || [], // 如果沒人中獎，就是空陣列
+    winners: winnerMap.get(p.no) || [] // 如果沒人中獎，就是空陣列
   }));
 
   renderWinners(finalData);
@@ -444,16 +445,20 @@ function renderWinners(groupedData = []) {
       : "";
 
     // 處理得獎人文字，若無則顯示「待抽獎」
-    const winnerNamesText =
-      g.winners.length > 0
-        ? g.winners.map((name) => escapeHtml(name)).join(", ")
-        : `<span style="color: #9ca3af; font-weight: normal;">(尚未抽出)</span>`;
+    const winnerNamesText = g.winners.length > 0 
+      ? g.winners.map(name => escapeHtml(name)).join(", ")
+      : `<span style="color: #9ca3af; font-weight: normal;">(尚未抽出)</span>`;
+
+    let displayNo = g.prize_no;
+    if (displayNo == 15) {
+      displayNo = "普";
+    }
 
     const row = document.createElement("div");
     row.className = "list-row";
     row.style.gridTemplateColumns = "80px 1fr 100px 70px 6fr";
     row.innerHTML = `
-      <div class="cell">${g.prize_no}獎</div>
+      <div class="cell">${displayNo}獎</div>
       <div class="cell">${escapeHtml(g.item_name)}</div>
       <div class="cell">${imgHtml}</div>
       <div class="cell">${g.qty}</div>

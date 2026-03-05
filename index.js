@@ -310,11 +310,16 @@ function renderWinners(groupedData = []) {
         ? g.winners.map((name) => escapeHtml(name)).join(", ")
         : `<span style="color: #9ca3af; font-weight: normal;">(尚未抽出)</span>`;
 
+    let displayNo = g.prize_no;
+    if (displayNo == 15) {
+      displayNo = "普";
+    }
+
     const row = document.createElement("div");
     row.className = "list-row";
     row.style.gridTemplateColumns = "80px 1fr 100px 70px 6fr";
     row.innerHTML = `
-      <div class="cell">${g.prize_no}獎</div>
+      <div class="cell">${displayNo}獎</div>
       <div class="cell">${escapeHtml(g.item_name)}</div>
       <div class="cell">${imgHtml}</div>
       <div class="cell">${g.qty}</div>
